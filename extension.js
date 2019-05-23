@@ -11,20 +11,18 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const mainMenu = Me.imports.CastMainMenu;
 
-/* Global variables for use as button to click */
+/* 
+Global variables for use as button to click 
+*/
 let castControlButton;
 
-/*
-This is the init function, here we have to put our code to initialize our extension.
-we have to be careful with init(), enable() and disable() and do the right things here.
-In this case we will do nothing
-*/
+
 function init() {}
 
 function enable() {
-	/* Create a new object button from class CastMainMenu */
+	// Init the CastMainMenu which inherits a PanelMenu button
 	castControlButton = new mainMenu.CastMainMenu;
-	// Add the button to the GNOME status area
+	// Add the panel menu button to the GNOME status area
 	Main.panel.addToStatusArea('CastMainMenu', castControlButton, 0, 'right');
 }
 
