@@ -51,9 +51,13 @@ const CastMainMenu = new Lang.Class({
 			// Loop through each item in the array
 			for (device in deviceArray){
 				// Create a submenu for each device item
-				let deviceMenuExpander = new PopupMenu.PopupSubMenuMenuItem(deviceArray[device].name)
+                let deviceMenuExpander = 
+                    new PopupMenu.PopupSubMenuMenuItem(
+                        deviceArray[device].name)
 				// Under each sub-menu, show controls
-				let deviceMenu_MediaApp = new PopupMenu.PopupSubMenuMenuItem(deviceArray[device].status.application + ' - ' + deviceArray[device].status.title);
+                let deviceMenu_MediaApp = 
+                    new PopupMenu.PopupSubMenuMenuItem(
+                        deviceArray[device].status.application + ' - ' + deviceArray[device].status.title);
 
 				// Add the sub-menu items to the parent menu item
 				deviceMenuExpander.menu.addMenuItem(deviceMenu_MediaApp);
@@ -66,7 +70,23 @@ const CastMainMenu = new Lang.Class({
 			let noItemsFoundMenu = new PopupMenu.PopupMenuItem("No cast devices found...");
 			this.menu.addMenuItem(noItemsFoundMenu);
 		}
-	},
+    },
+    
+    populateMenuItems: function(){
+        // Create a refresh button
+        let refreshMenuItem = new PopupMenu.PopupImageMenuItem('Refresh', 'view-refresh-symbolic');		
+
+        // Assemble all menu items
+        // Get Cast Device Menu
+        this.addCastDeviceMenuItems();
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        this.menu.addMenuItem(refreshMenuItem);
+
+        // Connect the Refresh menu item to a click event trigger
+        refreshMenuItem.connect('activate', Lang.bind(this, function(){
+            
+        }));
+    },
 
 	// Constructor
 	_init: function() {
@@ -98,21 +118,11 @@ const CastMainMenu = new Lang.Class({
 
 		// We add the box to the button
 		// It will be showed in the Top Panel
-		this.actor.add_child(box);
-		
-		// Create a refresh button
-		let refreshMenuItem = new PopupMenu.PopupImageMenuItem('Refresh', 'view-refresh-symbolic');		
+        this.actor.add_child(box);
+        
+        // Populate the menu items
+        this.populateMenuItems();
 
-		// Assemble all menu items
-		// Get Cast Device Menu
-		this.addCastDeviceMenuItems();
-		this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-		this.menu.addMenuItem(refreshMenuItem);
-
-		// Connect the Refresh menu item to a click event trigger
-		refreshMenuItem.connect('activate', Lang.bind(this, function(){
-			
-		}));
 	},
 
 	destroy: function() {
