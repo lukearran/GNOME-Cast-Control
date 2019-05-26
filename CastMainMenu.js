@@ -31,7 +31,7 @@ var CastMainMenu = new Lang.Class({
 			// Create a session
 			let sessionSync = new Soup.SessionSync();
 			// Create a GET message to the API /device
-			let msg = Soup.Message.new('GET', 'http://192.168.1.95:3000/' + endPoint);
+			let msg = Soup.Message.new('GET', 'http://localhost:3000/' + endPoint);
 			// Send the request to the server
 			sessionSync.send_message(msg);
 			// Parse the response from the server
@@ -100,7 +100,7 @@ var CastMainMenu = new Lang.Class({
                         deviceArray[device].name)
 				// Under each sub-menu, show controls
 				// Current Application running on Cast Device
-				let labelMediaApp = new St.Label({text:deviceArray[device].status.application + ' - ' + deviceArray[device].status.title});
+				let labelMediaApp = new St.Label({text:"Loading..."});
 				let labelMediaAppSubtitle = new St.Label({text:"Loading..."});
 
 				// To access the label upon refreshing, add the label to a key collection with the device ID
