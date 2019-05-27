@@ -144,7 +144,10 @@ var CastMainMenu = new Lang.Class({
 
     populateMenuItems: function(){
         // Create a refresh button
-        let refreshMenuItem = new PopupMenu.PopupImageMenuItem('Refresh', 'view-refresh-symbolic');		
+		let refreshMenuItem = new PopupMenu.PopupImageMenuItem('Refresh', 'view-refresh-symbolic');		
+		
+		// Set a fixed width to the menu to ensure consistency
+		this.menu.box.width = 350;
 
         // Assemble all menu items
         // Get Cast Device Menu
@@ -174,7 +177,7 @@ var CastMainMenu = new Lang.Class({
 		/*
 		All icons are found in `/usr/share/icons/theme-being-used`
 		*/
-		let icon =  new St.Icon({ icon_name: 'preferences-desktop-remote-desktop-symbolic', style_class: 'system-status-icon'});
+		let icon =  new St.Icon({ icon_name: 'video-display-symbolic', style_class: 'system-status-icon'});
 
 		// A label expanded and center aligned in the y-axis
 		let toplabel = new St.Label({ text: ' Cast ',
@@ -184,7 +187,7 @@ var CastMainMenu = new Lang.Class({
 		// We add the icon, the label and a arrow icon to the box
 		box.add(icon);
 		box.add(toplabel);
-		box.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
+		//box.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
 
 		// We add the box to the button
 		// It will be showed in the Top Panel

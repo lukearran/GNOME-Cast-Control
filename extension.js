@@ -16,14 +16,22 @@ Global variables for use as button to click
 */
 let castControlButton;
 
+/*
+Start services to launch Cast Control platform
+*/
+function startServices(){
+	log("Starting Cast Control services....");
+	// Add the panel menu button to the GNOME status area
+	Main.panel.addToStatusArea('CastMainMenu', castControlButton, 0, 'right');
+}
 
 function init() {}
 
 function enable() {
 	// Init the CastMainMenu which inherits a PanelMenu button
 	castControlButton = new mainMenu.CastMainMenu;
-	// Add the panel menu button to the GNOME status area
-	Main.panel.addToStatusArea('CastMainMenu', castControlButton, 0, 'right');
+	// Start all services & functionality
+	startServices();
 }
 
 function disable() {
