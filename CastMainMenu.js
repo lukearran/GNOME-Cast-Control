@@ -21,8 +21,8 @@ Import Lang because we will write code in a Object Oriented Manner
 */
 const Lang = imports.lang;
 
-var CastMainMenu = new Lang.Class({
-	Name: 'CastMainMenu',	// Class Name
+var CastControl = new Lang.Class({
+	Name: 'CastControl',	// Class Name
 	Extends: PanelMenu.Button,	// Parent Class
 
 	_InvokeCastAPI : function(endPoint){

@@ -29,7 +29,7 @@ function init() {}
 
 function enable() {
 	// Init the CastMainMenu which inherits a PanelMenu button
-	castControlButton = new mainMenu.CastMainMenu;
+	castControlButton = new mainMenu.CastControl;
 	// Start all services & functionality
 	startServices();
 }
