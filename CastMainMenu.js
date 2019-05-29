@@ -1,25 +1,24 @@
+// Import St because is the library that allow you to create UI elements
+const St = imports.gi.St;
+// Import Clutter because is the library that allow you to layout UI elements
+const Clutter = imports.gi.Clutter;
+//Import PanelMenu and PopupMenu 
+const PanelMenu = imports.ui.panelMenu;
+const PopupMenu = imports.ui.popupMenu;
+//Import libsoup to create HTTP requests
+const Soup = imports.gi.Soup;
+//Import Lang because we will write code in a Object Oriented Manner
+const Lang = imports.lang;
+// Import Helper classes
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+const Timers = Me.imports.helpers.timers;
+
 // Collection of Now Playing labels by Cast Device ID
 var nowPlayingMapTitle = new Map();
 var nowPlayingMapSubTitle = new Map();
 
-/* Import St because is the library that allow you to create UI elements */
-const St = imports.gi.St;
-/* Import Clutter because is the library that allow you to layout UI elements */
-const Clutter = imports.gi.Clutter;
-/*
-Import PanelMenu and PopupMenu 
-See more info about these objects in REFERENCE.md
-*/
-const PanelMenu = imports.ui.panelMenu;
-const PopupMenu = imports.ui.popupMenu;
-
-// Import libsoup to create HTTP requests
-const Soup = imports.gi.Soup;
-
-/*
-Import Lang because we will write code in a Object Oriented Manner
-*/
-const Lang = imports.lang;
+let _refreshInterval;
 
 var CastControl = new Lang.Class({
 	Name: 'CastControl',	// Class Name
@@ -72,7 +71,7 @@ var CastControl = new Lang.Class({
 				}
 				// Otherwise inform user that nothing is playing right now...
 				else{
-					playingLabelTextTitle = "Nothing playing...";
+					playingLabelTextTitle = "Nothing is playing...";
 					playingLabelTextSubTitle = "";
 				}
 
@@ -82,6 +81,11 @@ var CastControl = new Lang.Class({
 
 			}		
 		}
+	},
+
+	
+	_clearMenuItems : function(){
+		this.menu.removeAll();
 	},
 
 	// Create device menu action triggers
@@ -94,6 +98,9 @@ var CastControl = new Lang.Class({
 	// Requests the list of all device items from the server, and creates
 	// a menu item for each device
 	_addCastDeviceMenuItems : function(){
+		// We are creating a box layout with shell toolkit
+		let deviceTray = new St.BoxLayout();
+
 		// Get the list of Cast devices from the API
 		// Store the device items in the array
 		deviceArray = this._InvokeCastAPI("device");
@@ -103,7 +110,6 @@ var CastControl = new Lang.Class({
 
 			// For every device item in the array, complete the following statment
 			for (device in deviceArray){
-
 				// Create a parent sub-menu
                 let deviceMenuExpander = 
                     new PopupMenu.PopupSubMenuMenuItem(
@@ -158,6 +164,9 @@ var CastControl = new Lang.Class({
 		// Set a fixed width to the menu to ensure consistency
 		this.menu.box.width = 350;
 
+		// Clear menu items, if items have already been created
+		this._clearMenuItems();
+
         // Create menu item for each Cast device
 		this._addCastDeviceMenuItems();
 		// Add a separator between the device list and the refresh button
@@ -167,8 +176,12 @@ var CastControl = new Lang.Class({
 
         // Hook up the refresh menu button to a click trigger, which will call the refresh method
         refreshMenuItem.connect('activate', Lang.bind(this, function(){
-			this.refreshNowPlayingLabels(true);
-        }));
+			this._createMenuItems();
+		}));	
+		
+		this._refreshInterval = Timers.setInterval(() => {
+			this._createMenuItems();
+		}, 30000);
 	},
 
 	// Constructor
@@ -210,5 +223,6 @@ var CastControl = new Lang.Class({
 
 	destroy: function() {
 		resetButton();
+		Timers.clearInterval(this._refreshInterval);
 	}
 });
