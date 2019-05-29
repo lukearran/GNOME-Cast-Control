@@ -84,6 +84,13 @@ var CastMainMenu = new Lang.Class({
 		}
 	},
 
+	// Create device menu action triggers
+	_hookUpActionTriggers : function(menuItem, deviceId, action){
+		menuItem.connect('activate', Lang.bind(this, function(){
+			this._InvokeCastAPI("device/" + deviceId + "/" + action);
+		}));
+	},
+
 		// Requests the list of all device items from the server, and creates
 	// a menu item for each device
 	_addCastDeviceMenuItems : function(){
@@ -123,13 +130,10 @@ var CastMainMenu = new Lang.Class({
 				// Add the parent menu to the Indicator menu
 				this.menu.addMenuItem(deviceMenuExpander);
 
-				playMenuItem.connect('activate', Lang.bind(this, function(){
-					this._InvokeCastAPI("device/" + deviceArray[device].id + "/play");
-				}));
+				this._hookUpActionTriggers(playMenuItem, deviceArray[device].id, "play");
+				this._hookUpActionTriggers(pauseMenuItem, deviceArray[device].id, "pause");
 
-				pauseMenuItem.connect('activate', Lang.bind(this, function(){
-					this._InvokeCastAPI("device/" + deviceArray[device].id + "/pause");
-				}));
+
 			}
 
 			// Once the labels have been created, refresh them once more
