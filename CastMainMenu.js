@@ -181,7 +181,8 @@ var CastControl = new Lang.Class({
 		
 		this._refreshInterval = Timers.setInterval(() => {
 			this._createMenuItems();
-		}, 30000);
+			Timers.clearInterval(this._refreshInterval);
+		}, 60000);
 	},
 
 	// Constructor
