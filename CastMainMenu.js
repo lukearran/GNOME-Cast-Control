@@ -27,7 +27,7 @@ var CastMainMenu = new Lang.Class({
 
 	_InvokeCastAPI : function(endPoint){
 		try{
-			log("Attempting to invoke Cast API at " + endPoint);
+			log("Attempting to invoke the Legacy HTTP Cast API at " + endPoint);
 			// Create a session
 			let sessionSync = new Soup.SessionSync();
 			// Create a GET message to the API /device
@@ -40,23 +40,23 @@ var CastMainMenu = new Lang.Class({
 			return jsonObj;
 		}
 		catch{
-			log("Failed getting the list of connected Cast devices...")
+			log("Failed to get the list of connected Cast devices - is the Cast Web API running on port 3000?...")
 		}
 	},
 		
 	refreshNowPlayingLabels : function(updateSource){
-		log("Refreshing Now Playing Labels...");
+		log("Refreshing menu context labels...");
 
 		// Get the latest device information
 		if (updateSource){
-			log("Refreshing data source before setting Now Playing Labels...");
+			log("Updating Cast information before updating label context...");
 
 			deviceArray = this._InvokeCastAPI("device");
 		}
 
 		if (deviceArray != null){
 			for (device in deviceArray){
-				log("Updating Now Playing label for device " + deviceArray[device].id + "... " + deviceArray[device].status.title);
+				log("Updating context label for device " + deviceArray[device].id + "... " + deviceArray[device].status.title);
 
 				// Get the label for the corresponding device id
 				var deviceLabelTitle = nowPlayingMapTitle.get(deviceArray[device].id);
