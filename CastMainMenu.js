@@ -24,7 +24,7 @@ const Lang = imports.lang;
 var CastControl = new Lang.Class({
 	Name: 'CastControl',	// Class Name
 	Extends: PanelMenu.Button,	// Parent Class
-
+	
 	_InvokeCastAPI : function(endPoint){
 		try{
 			log("Attempting to invoke the Legacy HTTP Cast API at " + endPoint);
@@ -45,38 +45,38 @@ var CastControl = new Lang.Class({
 	},
 		
 	refreshNowPlayingLabels : function(updateSource){
-		log("Refreshing menu context labels...");
-
 		// Get the latest device information
-		if (updateSource){
-			log("Updating Cast information before updating label context...");
-
+		if (updateSource)
 			deviceArray = this._InvokeCastAPI("device");
-		}
 
-		if (deviceArray != null){
+		// Refresh the Now Playing labels if the device array is not empty
+		if (deviceArray != null && deviceArray.length > 0){
+			// Loop through each device
 			for (device in deviceArray){
 				log("Updating context label for device " + deviceArray[device].id + "... " + deviceArray[device].status.title);
 
-				// Get the label for the corresponding device id
+				// Get the title label assigned to the corresponding menu label
 				var deviceLabelTitle = nowPlayingMapTitle.get(deviceArray[device].id);
+				// Get the sub-title title label assigned to the corresponding menu label
 				var deviceLabelSubTitle = nowPlayingMapSubTitle.get(deviceArray[device].id);
 
+				// Declare variables to store the string for the labels
 				let playingLabelTextTitle, playingLabelTextSubTitle;
 				
-				// If the device is active with media, then update the labels with context
+				// If the status of the device is not empty, then the device will be playing content
 				if (deviceArray[device].status.status != ""){
-					// Create the text for the label
+					// Create the string for the title
 					playingLabelTextTitle = deviceArray[device].status.title + " - " + deviceArray[device].status.subtitle;
+					// Create the string for the sub-title
 					playingLabelTextSubTitle = deviceArray[device].status.application;
 				}
-				// Otherwise inform user that nothing is playing
+				// Otherwise inform user that nothing is playing right now...
 				else{
 					playingLabelTextTitle = "Nothing playing...";
 					playingLabelTextSubTitle = "";
 				}
 
-				// Set the text back to the label
+				// Set the string to the label object text
 				deviceLabelTitle.set_text(playingLabelTextTitle);
 				deviceLabelSubTitle.set_text(playingLabelTextSubTitle);
 
@@ -91,48 +91,53 @@ var CastControl = new Lang.Class({
 		}));
 	},
 
-		// Requests the list of all device items from the server, and creates
+	// Requests the list of all device items from the server, and creates
 	// a menu item for each device
 	_addCastDeviceMenuItems : function(){
-		// Create an array of Cast Devices
+		// Get the list of Cast devices from the API
+		// Store the device items in the array
 		deviceArray = this._InvokeCastAPI("device");
 
-		// If the request to the server does return an object, then create the app menu items
-		if (deviceArray != null){
-			// Loop through each item in the array
+		// Proceed if the device array is not empty
+		if (deviceArray != null && deviceArray.length > 0){
+
+			// For every device item in the array, complete the following statment
 			for (device in deviceArray){
-				// Create a submenu for each device item
+
+				// Create a parent sub-menu
                 let deviceMenuExpander = 
                     new PopupMenu.PopupSubMenuMenuItem(
-                        deviceArray[device].name)
-				// Under each sub-menu, show controls
-				// Current Application running on Cast Device
+						deviceArray[device].name)
+
+				// Create the title labels
 				let labelMediaApp = new St.Label({text:"Loading..."});
 				let labelMediaAppSubtitle = new St.Label({text:"Loading..."});
 
-				// To access the label upon refreshing, add the label to a key collection with the device ID
+				// To refresh the labels at a later point, map the label object to the device ID
 				nowPlayingMapTitle.set(deviceArray[device].id, labelMediaApp);
 				nowPlayingMapSubTitle.set(deviceArray[device].id, labelMediaAppSubtitle);
 
-				// Add the sub-menu items to the parent menu item
+				// Add the title and sub-title to the box
 				deviceMenuExpander.menu.box.add(nowPlayingMapTitle.get(deviceArray[device].id));
 				deviceMenuExpander.menu.box.add(nowPlayingMapSubTitle.get(deviceArray[device].id));
+
+				// Set the stylesheet which applies a margin to the label
 				deviceMenuExpander.menu.box.style_class = 'PopupSubMenuMenuItemStyle';
 
+				// Create a Play Menu Item
 				let playMenuItem = new PopupMenu.PopupImageMenuItem('Play', 'media-playback-start-symbolic');
-				let pauseMenuItem = new PopupMenu.PopupImageMenuItem('Pause', 'media-playback-pause-symbolic');
-				let muteMenuItem = new PopupMenu.PopupImageMenuItem('Mute', 'audio-volume-muted-symbolic');
-
 				deviceMenuExpander.menu.addMenuItem(playMenuItem);
-				deviceMenuExpander.menu.addMenuItem(pauseMenuItem);
-				deviceMenuExpander.menu.addMenuItem(muteMenuItem);
 
-				// Add the parent menu to the Indicator menu
+				// Create a Pause Menu Item
+				let pauseMenuItem = new PopupMenu.PopupImageMenuItem('Pause', 'media-playback-pause-symbolic');
+				deviceMenuExpander.menu.addMenuItem(pauseMenuItem);
+
+				// Add this device drop-down menu to the parent menu
 				this.menu.addMenuItem(deviceMenuExpander);
 
+				// Connect event triggers to the media control buttons
 				this._hookUpActionTriggers(playMenuItem, deviceArray[device].id, "play");
 				this._hookUpActionTriggers(pauseMenuItem, deviceArray[device].id, "pause");
-
 
 			}
 
@@ -144,30 +149,31 @@ var CastControl = new Lang.Class({
 			let noItemsFoundMenu = new PopupMenu.PopupMenuItem("No cast devices found...");
 			this.menu.addMenuItem(noItemsFoundMenu);
 		}
-    },
+	},
 
-    populateMenuItems: function(){
+    _createMenuItems: function(){
         // Create a refresh button
 		let refreshMenuItem = new PopupMenu.PopupImageMenuItem('Refresh', 'view-refresh-symbolic');		
 		
 		// Set a fixed width to the menu to ensure consistency
 		this.menu.box.width = 350;
 
-        // Assemble all menu items
-        // Get Cast Device Menu
-        this._addCastDeviceMenuItems();
-        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        // Create menu item for each Cast device
+		this._addCastDeviceMenuItems();
+		// Add a separator between the device list and the refresh button
+		this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+		// Add the refresh button
         this.menu.addMenuItem(refreshMenuItem);
 
-        // Connect the Refresh menu item to a click event trigger
+        // Hook up the refresh menu button to a click trigger, which will call the refresh method
         refreshMenuItem.connect('activate', Lang.bind(this, function(){
 			this.refreshNowPlayingLabels(true);
         }));
-    },
+	},
 
 	// Constructor
 	_init: function() {
-		/* 
+				/* 
 		This is calling the parent constructor
 		1 is the menu alignment (1 is left, 0 is right, 0.5 is centered)
 		`CastMainMenu` is the name
@@ -191,14 +197,14 @@ var CastControl = new Lang.Class({
 		// We add the icon, the label and a arrow icon to the box
 		box.add(icon);
 		box.add(toplabel);
-		//box.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
+		box.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
 
 		// We add the box to the button
 		// It will be showed in the Top Panel
-        this.actor.add_child(box);
-        
-        // Populate the menu items
-        this.populateMenuItems();
+		this.actor.add_child(box);
+		
+        // Create the drop-down menu items
+        this._createMenuItems();
 
 	},
 
