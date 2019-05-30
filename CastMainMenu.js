@@ -95,6 +95,18 @@ var CastControl = new Lang.Class({
 		}));
 	},
 
+	_hookUpMuteSwitchTriggers : function (switchItem, deviceId){
+		switchItem.connect('toggled', Lang.bind(this, function(object, value){
+			if (value){
+				// We will just change the text content of the label
+				this._InvokeCastAPI("device/" + deviceId + "/" + "muted/true");
+			}
+			else{
+				this._InvokeCastAPI("device/" + deviceId + "/" + "muted/false");
+			}
+		}));
+	},
+
 	// Requests the list of all device items from the server, and creates
 	// a menu item for each device
 	_addCastDeviceMenuItems : function(){
@@ -138,13 +150,23 @@ var CastControl = new Lang.Class({
 				let pauseMenuItem = new PopupMenu.PopupImageMenuItem('Pause', 'media-playback-pause-symbolic');
 				deviceMenuExpander.menu.addMenuItem(pauseMenuItem);
 
+				// Create a Stop Menu Item
+				let stopMenuItem = new PopupMenu.PopupImageMenuItem('Stop', 'media-playback-stop-symbolic');
+				deviceMenuExpander.menu.addMenuItem(stopMenuItem);
+
+				// Mute Switch
+				let muteSwitchItem = new PopupMenu.PopupSwitchMenuItem('Mute');
+				deviceMenuExpander.menu.addMenuItem(muteSwitchItem);
+
 				// Add this device drop-down menu to the parent menu
 				this.menu.addMenuItem(deviceMenuExpander);
 
 				// Connect event triggers to the media control buttons
 				this._hookUpActionTriggers(playMenuItem, deviceArray[device].id, "play");
 				this._hookUpActionTriggers(pauseMenuItem, deviceArray[device].id, "pause");
-
+				this._hookUpActionTriggers(stopMenuItem, deviceArray[device].id, "stop");
+				this._hookUpMuteSwitchTriggers(muteSwitchItem, deviceArray[device].id);
+				
 			}
 
 			// Once the labels have been created, refresh them once more
