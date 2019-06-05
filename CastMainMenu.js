@@ -64,8 +64,13 @@ var CastControl = new Lang.Class({
 				
 				// If the status of the device is not empty, then the device will be playing content
 				if (deviceArray[device].status.status != ""){
+					if (deviceArray[device].status.title != undefined){
 					// Create the string for the title
 					playingLabelTextTitle = deviceArray[device].status.title + " - " + deviceArray[device].status.subtitle;
+					}
+					else{
+						playingLabelTextTitle = "Playing...";
+					}
 					// Create the string for the sub-title
 					playingLabelTextSubTitle = deviceArray[device].status.application;
 				}
@@ -200,7 +205,7 @@ var CastControl = new Lang.Class({
         refreshMenuItem.connect('activate', Lang.bind(this, function(){
 			this._createMenuItems();
 		}));	
-		
+		// Refresh the menu every 60 seconds
 		this._refreshInterval = Timers.setInterval(() => {
 			this._createMenuItems();
 			Timers.clearInterval(this._refreshInterval);

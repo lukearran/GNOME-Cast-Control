@@ -10,6 +10,7 @@ Import CastControl libraries
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const mainMenu = Me.imports.CastMainMenu;
+const controlCentre = Me.imports.CastControlCentre;
 
 /* 
 Global variables for use as button to click 
@@ -23,6 +24,8 @@ function startServices(){
 	log("Starting Cast Control services....");
 	// Add the panel menu button to the GNOME status area
 	Main.panel.addToStatusArea('CastMainMenu', castControlButton, 0, 'right');
+
+	controlCentre.start();
 
 }
 
