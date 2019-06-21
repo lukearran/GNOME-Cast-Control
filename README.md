@@ -14,11 +14,11 @@ Please do get involved! I'm intending to develop this further to include the bel
 - [X] Stop
 - [ ] Rewind / Fast forward 30 Seconds
 - [X] Auto Refresh
-- [ ] Change API Port
+- [ ] Change Cast API Port
 - [ ] Settings / Setup Wizard
-- [ ] Automatically starts Cast Web API on the extension being created
+- [X] Automatically starts Cast Web API on the extension being created
 - [ ] Embed [vervallsweg's Cast Web API Node application](https://github.com/vervallsweg/cast-web-api-cli) natively into extension
-- [ ] Display Media Images
+- [ ] Display Now Playing Media Images
 
 ## Installation
 
