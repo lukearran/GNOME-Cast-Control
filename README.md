@@ -22,7 +22,7 @@ Please do get involved! I'm intending to develop this further to include the bel
 
 ## Installation
 
-- Install [vervallsweg's Cast Web API Node application](https://github.com/vervallsweg/cast-web-api-cli) on your GNOME based Linux distribution.
-- Download the source code, and extract the contents to ~/.local/share/gnome-shell/extensions/castcontrol-hello.lukearran.com
-- After extracting the contents to the folder, restart the GNOME Shell. Go to GNOME Tweak Tool and enable "Cast Control"
-- It may take up to 5 minutes for Cast Web API to start and search devices.
+1. Install [vervallsweg's Cast Web API Node application](https://github.com/vervallsweg/cast-web-api-cli) on your GNOME based Linux distribution.
+2. Download the source code, and extract the contents to ~/.local/share/gnome-shell/extensions/castcontrol-hello.lukearran.com
+3. After extracting the contents to the folder, restart the GNOME Shell. Go to GNOME Tweak Tool and enable "Cast Control"
+4. It may take up to 5 minutes for Cast Web API to start and search devices.
