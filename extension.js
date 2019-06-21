@@ -35,7 +35,5 @@ function enable() {
 function disable() {
 	controlCentre.stop();
 	castControlButton.destroy();	
-	mainMenu.destroy();
 	castControlButton = null;
-	mainMenu = null;
 }
