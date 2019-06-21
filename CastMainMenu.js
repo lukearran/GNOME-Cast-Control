@@ -228,10 +228,10 @@ var CastControl = new Lang.Class({
 		/*
 		All icons are found in `/usr/share/icons/theme-being-used`
 		*/
-		let icon =  new St.Icon({ icon_name: 'video-display-symbolic', style_class: 'system-status-icon'});
+		let icon =  new St.Icon({ icon_name: 'user-home-symbolic', style_class: 'system-status-icon'});
 
 		// A label expanded and center aligned in the y-axis
-		let toplabel = new St.Label({ text: ' Cast ',
+		let toplabel = new St.Label({ text: ' Home ',
 			y_expand: true,
 			y_align: Clutter.ActorAlign.CENTER });
 
