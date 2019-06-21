@@ -23,7 +23,7 @@ function trySpawnCommandLine(command_line) {
 
 
 function start(){    
-    trySpawnCommandLine("cast-web-api-cli start -p 2321");
+    trySpawnCommandLine("cast-web-api-cli start");
 }
 
 function stop(){

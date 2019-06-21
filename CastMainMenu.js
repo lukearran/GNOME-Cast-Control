@@ -250,7 +250,6 @@ var CastControl = new Lang.Class({
 	},
 
 	destroy: function() {
-		resetButton();
-		Timers.clearInterval(this._refreshInterval);
+		this.parent();
 	}
 });
