@@ -44,9 +44,11 @@ var CastControl = new Lang.Class({
 	},
 		
 	refreshNowPlayingLabels : function(updateSource){
+
 		// Get the latest device information
-		if (updateSource)
+		if (updateSource){
 			deviceArray = this._InvokeCastAPI("device");
+		}
 
 		// Refresh the Now Playing labels if the device array is not empty
 		if (deviceArray != null && deviceArray.length > 0){
@@ -63,7 +65,7 @@ var CastControl = new Lang.Class({
 				let playingLabelTextTitle, playingLabelTextSubTitle;
 				
 				// If the status of the device is not empty, then the device will be playing content
-				if (deviceArray[device].status.status != ""){
+				if (deviceArray[device].status.status.length > 0){
 					if (deviceArray[device].status.title != undefined){
 					// Create the string for the title
 					playingLabelTextTitle = deviceArray[device].status.title + " - " + deviceArray[device].status.subtitle;
@@ -157,11 +159,15 @@ var CastControl = new Lang.Class({
 
 				// Create a Stop Menu Item
 				let stopMenuItem = new PopupMenu.PopupImageMenuItem('Stop', 'media-playback-stop-symbolic');
-				deviceMenuExpander.menu.addMenuItem(stopMenuItem);
+				deviceMenuExpander.menu.addMenuItem(stopMenuItem);				
 
 				// Mute Switch
 				let muteSwitchItem = new PopupMenu.PopupSwitchMenuItem('Mute');
 				deviceMenuExpander.menu.addMenuItem(muteSwitchItem);
+
+				if(deviceArray[device].status.muted){
+					muteSwitchItem.toggle();
+				}
 
 				// Add this device drop-down menu to the parent menu
 				this.menu.addMenuItem(deviceMenuExpander);
@@ -186,7 +192,8 @@ var CastControl = new Lang.Class({
 
     _createMenuItems: function(){
         // Create a refresh button
-		let refreshMenuItem = new PopupMenu.PopupImageMenuItem('Refresh', 'view-refresh-symbolic');		
+		let refreshMenuItem = new PopupMenu.PopupImageMenuItem('Refresh', 'view-refresh-symbolic');
+		let settingsMenuItem = new PopupMenu.PopupImageMenuItem('Settings', 'system-run-symbolic');		
 		
 		// Set a fixed width to the menu to ensure consistency
 		this.menu.box.width = 350;
@@ -199,7 +206,8 @@ var CastControl = new Lang.Class({
 		// Add a separator between the device list and the refresh button
 		this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 		// Add the refresh button
-        this.menu.addMenuItem(refreshMenuItem);
+		this.menu.addMenuItem(refreshMenuItem);
+		this.menu.addMenuItem(settingsMenuItem);
 
         // Hook up the refresh menu button to a click trigger, which will call the refresh method
         refreshMenuItem.connect('activate', Lang.bind(this, function(){
