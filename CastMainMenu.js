@@ -66,7 +66,7 @@ var CastControl = new Lang.Class({
 				let playingLabelTextTitle, playingLabelTextSubTitle;
 				
 				
-				if (deviceArray[device].status.application.length > 0){					
+				if (deviceArray[device].status.application.length > 0 && deviceArray[device].status.application != "Backdrop"){					
 					// Set title based of title in status object
 					if (deviceArray[device].status.title.length > 0){
 						playingLabelTextTitle = deviceArray[device].status.title;
@@ -191,7 +191,7 @@ var CastControl = new Lang.Class({
 		}
 		// Otherwise show a menu item indicating that the is no devices
 		else{
-			let noItemsFoundMenu = new PopupMenu.PopupMenuItem("No cast devices found...");
+			let noItemsFoundMenu = new PopupMenu.PopupMenuItem("No devices found...");
 			this.menu.addMenuItem(noItemsFoundMenu);
 		}
 	},
@@ -223,10 +223,12 @@ var CastControl = new Lang.Class({
 		if (!_isRefreshTriggerCreated){
 			// Refresh the menu every 60 seconds
 			this._refreshInterval = Timers.setInterval(() => {
-				this._createMenuItems();
-				Timers.clearInterval(this._refreshInterval);
-				_isRefreshTriggerCreated = true;
-			}, 60000);
+				if (!this.menu.isOpen){
+					this._createMenuItems();
+					Timers.clearInterval(this._refreshInterval);
+					_isRefreshTriggerCreated = true;
+				}
+			}, 15000);
 		}
 
 	},
