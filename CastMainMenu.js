@@ -19,6 +19,7 @@ var nowPlayingMapTitle = new Map();
 var nowPlayingMapSubTitle = new Map();
 
 let _refreshInterval;
+let _isRefreshTriggerCreated;
 
 var CastControl = new Lang.Class({
 	Name: 'CastControl',	// Class Name
@@ -64,21 +65,26 @@ var CastControl = new Lang.Class({
 				// Declare variables to store the string for the labels
 				let playingLabelTextTitle, playingLabelTextSubTitle;
 				
-				// If the status of the device is not empty, then the device will be playing content
-				if (deviceArray[device].status.status.length > 0){
-					if (deviceArray[device].status.title != undefined){
-					// Create the string for the title
-					playingLabelTextTitle = deviceArray[device].status.title + " - " + deviceArray[device].status.subtitle;
+				
+				if (deviceArray[device].status.application.length > 0){					
+					// Set title based of title in status object
+					if (deviceArray[device].status.title.length > 0){
+						playingLabelTextTitle = deviceArray[device].status.title;
+
+						if (deviceArray[device].status.subtitle.length > 0){
+							playingLabelTextTitle += " - " + deviceArray[device].status.subtitle;
+						}
+
+						playingLabelTextSubTitle = deviceArray[device].status.application;
 					}
+					// Otherwise just display the application
 					else{
-						playingLabelTextTitle = "Playing...";
+						playingLabelTextTitle = "" + deviceArray[device].status.application + " is running";
+						playingLabelTextSubTitle = "";
 					}
-					// Create the string for the sub-title
-					playingLabelTextSubTitle = deviceArray[device].status.application;
 				}
-				// Otherwise inform user that nothing is playing right now...
 				else{
-					playingLabelTextTitle = "Nothing is playing...";
+					playingLabelTextTitle = "Nothing playing...";
 					playingLabelTextSubTitle = "";
 				}
 
@@ -212,12 +218,17 @@ var CastControl = new Lang.Class({
         // Hook up the refresh menu button to a click trigger, which will call the refresh method
         refreshMenuItem.connect('activate', Lang.bind(this, function(){
 			this._createMenuItems();
-		}));	
-		// Refresh the menu every 60 seconds
-		this._refreshInterval = Timers.setInterval(() => {
-			this._createMenuItems();
-			Timers.clearInterval(this._refreshInterval);
-		}, 60000);
+		}));
+
+		if (!_isRefreshTriggerCreated){
+			// Refresh the menu every 60 seconds
+			this._refreshInterval = Timers.setInterval(() => {
+				this._createMenuItems();
+				Timers.clearInterval(this._refreshInterval);
+				_isRefreshTriggerCreated = true;
+			}, 60000);
+		}
+
 	},
 
 	// Constructor
@@ -253,7 +264,7 @@ var CastControl = new Lang.Class({
 		this.actor.add_child(box);
 		
         // Create the drop-down menu items
-        this._createMenuItems();
+		this._createMenuItems();
 
 	},
 
