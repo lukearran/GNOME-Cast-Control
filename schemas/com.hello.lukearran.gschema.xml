@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="castcontrol.hello.lukearran.com" path="/com/lukearran/hello/castcontrol/">
+    <key name="auto-castapi" type="b">
+      <default>true</default>
+      <summary>Starts and stops the Cast Control API by command line.</summary>
+    </key>
+    <key name="castapi-hostname" type="s">
+      <default>"localhost"</default>
+      <summary>The network hostname where the API end-point is accessible from.</summary>
+    </key>
+    <key name="castapi-port" type="i">
+      <default>3000</default>
+      <summary>The port where the API is accessible from.</summary>
+    </key>
+    <key name="refresh-interval-ms" type="i">
+      <default>15000</default>
+      <summary>The refresh interval to request the Cast Control API for changes.</summary>
+    </key>
+  </schema>
+</schemalist>

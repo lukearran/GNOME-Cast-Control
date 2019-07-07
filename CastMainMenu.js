@@ -2,6 +2,8 @@
 const St = imports.gi.St;
 // Import Clutter because is the library that allow you to layout UI elements
 const Clutter = imports.gi.Clutter;
+// Import Gio to store and return setting values
+const Gio = imports.gi.Gio;
 //Import PanelMenu and PopupMenu 
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
@@ -13,13 +15,13 @@ const Lang = imports.lang;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Timers = Me.imports.helpers.timers;
-
 // Collection of Now Playing labels by Cast Device ID
 var nowPlayingMapTitle = new Map();
 var nowPlayingMapSubTitle = new Map();
-
-let _refreshInterval;
-let _isRefreshTriggerCreated;
+// Refresh settings
+let _refreshInterval, _isRefreshTriggerCreated;
+// Settings
+let schema, settings, settingChangesId;
 
 var CastControl = new Lang.Class({
 	Name: 'CastControl',	// Class Name
@@ -64,11 +66,11 @@ var CastControl = new Lang.Class({
 
 				// Declare variables to store the string for the labels
 				let playingLabelTextTitle, playingLabelTextSubTitle;
-				
-				
+
+				// Ensure the Status member contains a string, and is not the default application of Nest Hub / Chromecast
 				if (deviceArray[device].status.application.length > 0 && deviceArray[device].status.application != "Backdrop"){					
-					// Set title based of title in status object
-					if (deviceArray[device].status.title.length > 0){
+					// Ensure the title member contains a value and is present
+					if (deviceArray[device].status.title != null && deviceArray[device].status.title.length > 0){
 						playingLabelTextTitle = deviceArray[device].status.title;
 
 						if (deviceArray[device].status.subtitle.length > 0){
@@ -133,7 +135,7 @@ var CastControl = new Lang.Class({
 		// Proceed if the device array is not empty
 		if (deviceArray != null && deviceArray.length > 0){
 
-			// For every device item in the array, complete the following statment
+			// For every device item in the array, complete the following statement
 			for (device in deviceArray){
 				// Create a parent sub-menu
                 let deviceMenuExpander = 
@@ -196,6 +198,20 @@ var CastControl = new Lang.Class({
 		}
 	},
 
+	_setupRefreshInterval: function(interval){
+		if (interval > 1000){
+			this._refreshInterval = Timers.setInterval(() => {
+				if (!this.menu.isOpen){
+					this._createMenuItems();
+					Timers.clearInterval(this._refreshInterval);
+				}
+			}, interval);
+		}
+		else{
+			throw "refresh interval has to be greater than 1000ms";
+		}
+	},
+
     _createMenuItems: function(){
         // Create a refresh button
 		let refreshMenuItem = new PopupMenu.PopupImageMenuItem('Refresh', 'view-refresh-symbolic');
@@ -219,23 +235,30 @@ var CastControl = new Lang.Class({
         refreshMenuItem.connect('activate', Lang.bind(this, function(){
 			this._createMenuItems();
 		}));
-
-		if (!_isRefreshTriggerCreated){
-			// Refresh the menu every 60 seconds
-			this._refreshInterval = Timers.setInterval(() => {
-				if (!this.menu.isOpen){
-					this._createMenuItems();
-					Timers.clearInterval(this._refreshInterval);
-					_isRefreshTriggerCreated = true;
-				}
-			}, 15000);
-		}
-
 	},
 
 	// Constructor
 	_init: function() {
-				/* 
+
+		// Get the Setting's schema
+		this.schema = Gio.SettingsSchemaSource.new_from_directory(
+			Me.dir.get_child('schemas').get_path(),
+			Gio.SettingsSchemaSource.get_default(),
+			false
+		);
+
+		// Load the schema values
+		this.settings = new Gio.Settings({
+			settings_schema: this.schema.lookup('castcontrol.hello.lukearran.com', true)
+		});
+
+		// Get the refresh interval
+		var refreshIntervalSetting = this.settings.get_value("refresh-interval-ms").deep_unpack();
+
+		// Setup backgroud refresh with the interval value
+		this._setupRefreshInterval(refreshIntervalSetting);
+		
+		/* 
 		This is calling the parent constructor
 		1 is the menu alignment (1 is left, 0 is right, 0.5 is centered)
 		`CastMainMenu` is the name
