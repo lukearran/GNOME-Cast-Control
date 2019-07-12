@@ -1,6 +1,7 @@
 {
     "name": "Cast Control", 
     "description": "Control your Google Cast devices on your local network", 
+    "version": 0.1,
     "uuid": "castcontrol@hello.lukearran.com", 
     "shell-version": ["3.32.1"]
 }

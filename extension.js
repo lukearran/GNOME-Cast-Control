@@ -3,11 +3,30 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const mainMenu = Me.imports.CastMainMenu;
 const controlCentre = Me.imports.CastControlCentre;
+const Gio = imports.gi.Gio;
 
 /* 
 Global variables for use as button to click 
 */
 let castControlButton;
+
+// Check if the extension should start / stop the API
+function isAutoControlEnabled(){
+	// Get the Setting's schema
+	this.schema = Gio.SettingsSchemaSource.new_from_directory(
+		Me.dir.get_child('schemas').get_path(),
+		Gio.SettingsSchemaSource.get_default(),
+		false
+	);
+
+	// Load the schema values
+	this.settings = new Gio.Settings({
+		settings_schema: this.schema.lookup('castcontrol.hello.lukearran.com', true)
+	});
+
+	// Get Setting Config
+	return this.settings.get_value("auto-castapi").deep_unpack();
+}
 
 /*
 Start services to launch Cast Control platform
@@ -18,8 +37,10 @@ function startServices(){
 	// Add the panel menu button to the GNOME status area
 	Main.panel.addToStatusArea('CastMainMenu', castControlButton, 0, 'right');
 
-	// Start Cast Web API CLI from Terminal
-	controlCentre.start();
+	if (this.isAutoControlEnabled()){
+		// Start Cast Web API CLI from Terminal
+		controlCentre.start();
+	}
 
 }
 
@@ -33,7 +54,10 @@ function enable() {
 }
 
 function disable() {
-	controlCentre.stop();
+	if (this.isAutoControlEnabled){
+		controlCentre.stop();
+	}
+
 	castControlButton.destroy();	
 	castControlButton = null;
 }

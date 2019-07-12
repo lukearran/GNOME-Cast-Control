@@ -2,6 +2,8 @@ const Mainloop = imports.mainloop;
 
 const setTimeout = function(func, millis /* , ... args */) {
 
+    log("Timer interval has been set to " + millis);
+
     let args = [];
     if (arguments.length > 2) {
         args = args.slice.call(arguments, 2);
@@ -16,11 +18,14 @@ const setTimeout = function(func, millis /* , ... args */) {
 };
 
 const clearTimeout = function(id) {
+    log("Timer " + id + " timeout has been cleared");
 
     Mainloop.source_remove(id);
 };
 
 const setInterval = function(func, millis /* , ... args */) {
+
+    log("Timer interval has been set to " + millis);
 
     let args = [];
     if (arguments.length > 2) {
@@ -36,6 +41,8 @@ const setInterval = function(func, millis /* , ... args */) {
 };
 
 const clearInterval = function(id) {
+
+    log("Timer " + id + " interval has been cleared");
 
     Mainloop.source_remove(id);
 };
