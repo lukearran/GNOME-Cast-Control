@@ -9,8 +9,8 @@ A simple GNOME extension client for [vervallsweg's Cast Web API Node application
 - [X] Play / Resume
 - [X] Stop
 - [X] Auto Refresh
-- [ ] Change Cast API Port
-- [ ] Settings / Setup Wizard
+- [X] Change Cast API Port
+- [X] Settings / Setup Wizard
 - [X] Automatically start Cast Web API on the extension being created
 - [ ] Embed [vervallsweg's Cast Web API Node application](https://github.com/vervallsweg/cast-web-api-cli) natively into extension
 - [ ] Display Now Playing Media Images
