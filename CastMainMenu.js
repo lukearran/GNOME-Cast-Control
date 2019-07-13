@@ -5,8 +5,10 @@ const Clutter = imports.gi.Clutter;
 // Import Gio to store and return setting values
 const Gio = imports.gi.Gio;
 //Import PanelMenu and PopupMenu 
+const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
+const Slider = imports.ui.slider;
 //Import libsoup to create HTTP requests
 const Soup = imports.gi.Soup;
 //Import Lang because we will write code in a Object Oriented Manner
@@ -21,27 +23,33 @@ var nowPlayingMapSubTitle = new Map();
 // Refresh settings
 var _refreshInterval;
 // Settings
-let schema, settings, settingChangesId, apiHostname, apiPort;
+let schema, settings, settingChangesId, apiHostname, apiPort, sessionSync;
 
 var CastControl = new Lang.Class({
 	Name: 'CastControl',	// Class Name
 	Extends: PanelMenu.Button,	// Parent Class
 	
-	_InvokeCastAPI : function(endPoint){
+	_InvokeCastAPI : function(endPoint, requestType){
+		var requestId = Math.random();
+
 		try{
+			// Cancel any pending/ongoing connections before creating a new one
+			this.sessionSync.abort();
+
 			if (this.apiHostname.length > 0 && this.apiPort > 0){
 				// Create the base address from the settings
 				var baseAddress = "http://" + this.apiHostname + ":" + this.apiPort;
 				// Write to log
-				log("Requesting Cast API at " + baseAddress + "/" + endPoint);
-				// Create a session
-				let sessionSync = new Soup.SessionSync();
+				log(requestType + " Request Started #" + requestId + " to Cast API at " + baseAddress + "/" + endPoint);
 				// Create a GET message to the API /device
-				let request = Soup.Message.new('GET', baseAddress + "/" + endPoint);
+				let request = Soup.Message.new(requestType.toUpperCase(), baseAddress + "/" + endPoint);
 				// Send the request to the server
-				sessionSync.send_message(request);
+				this.sessionSync.send_message(request);
 				// Parse the response from the server
 				var jsonObj = JSON.parse(request.response_body.data);
+
+				log(requestType + " Request Finished #" + requestId + ".");
+
 				// Convert the JSON response from the server
 				return jsonObj;
 			}
@@ -50,7 +58,7 @@ var CastControl = new Lang.Class({
 			}
 		}
 		catch (error){
-			log("Failed to get the list of connected Cast devices - is the Cast Web API running at " 
+			log("Request Failed #" + requestId + ": Failed to get the list of connected Cast devices - is the Cast Web API running at " 
 					+ this.apiHostname + ":" + this.apiPort + ": " + error);
 		}
 	},
@@ -150,7 +158,7 @@ var CastControl = new Lang.Class({
 					// Create a parent sub-menu
 					let deviceMenuExpander = 
 						new PopupMenu.PopupSubMenuMenuItem(
-							deviceArray[device].name)
+							deviceArray[device].name);
 
 					// Create the title labels
 					let labelMediaApp = new St.Label({text:"Loading..."});
@@ -183,6 +191,7 @@ var CastControl = new Lang.Class({
 					let muteSwitchItem = new PopupMenu.PopupSwitchMenuItem('Mute');
 					deviceMenuExpander.menu.addMenuItem(muteSwitchItem);
 
+
 					if(deviceArray[device].status.muted){
 						muteSwitchItem.toggle();
 					}
@@ -209,7 +218,7 @@ var CastControl = new Lang.Class({
 		}
 		catch (menuExp){
 			// Remove all items in the menu list
-			_clearMenuItems();
+			this._clearMenuItems();
 			// Show error menu
 			let noItemsFoundMenu = new PopupMenu.PopupMenuItem("A problem occurred...");
 			this.menu.addMenuItem(noItemsFoundMenu);
@@ -219,10 +228,10 @@ var CastControl = new Lang.Class({
 	},
 
 	_setupRefreshInterval: function(interval){
-		if (interval >= 1000){
-			this._refreshInterval = Timers.setInterval(() => {
-				log("Cast API Refresh Interval Trigger set at interval " + interval + "ms...");
+		if (interval >= 3000){
+			log("Cast API Refresh Interval Trigger set at interval " + interval + "ms...");
 
+			this._refreshInterval = Timers.setInterval(() => {
 				if (!this.menu.isOpen){
 
 					this._createMenuItems();
@@ -236,7 +245,7 @@ var CastControl = new Lang.Class({
 			}, interval);
 		}
 		else{
-			throw "refresh interval has to be greater than 1000ms";
+			throw "refresh interval has to be greater than 3000ms";
 		}
 	},
 
@@ -282,6 +291,10 @@ var CastControl = new Lang.Class({
 		var refreshIntervalSetting = this.settings.get_value("refresh-interval-ms").deep_unpack();
 		this.apiHostname = this.settings.get_value("castapi-hostname").deep_unpack();
 		this.apiPort = this.settings.get_value("castapi-port").deep_unpack();
+
+		// Setup a Soup Session
+		this.sessionSync = new Soup.SessionSync();
+		this.sessionSync.max_conns = 1;
 
 		// Setup background refresh with the interval value
 		this._setupRefreshInterval(refreshIntervalSetting);
