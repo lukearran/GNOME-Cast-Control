@@ -31,7 +31,7 @@ function buildPrefsWidget(){
     let layout = new Gtk.Grid({
         margin: 50,
         column_spacing: 12,
-        row_spacing: 12,
+        row_spacing: 18,
         visible: true
     });
     
@@ -156,7 +156,17 @@ function buildPrefsWidget(){
         );
     });
 
-    layout.attach(saveButton, 15, 50, 7, 3);
+    layout.attach(saveButton, 1, 50, 1, 1);
+
+    // Get Cast API Button
+    let getApiButton = new Gtk.LinkButton({
+        label: " Don't have Cast API installed? ",
+        halign: Gtk.Align.START,
+        visible: true,
+        uri: 'https://github.com/vervallsweg/cast-web-api-cli'
+    });
+
+    layout.attach_next_to(getApiButton, saveButton, Gtk.PositionType.LEFT, 1, 1);
 
     return layout;
 }
