@@ -120,7 +120,7 @@ function buildPrefsWidget(){
 
     var serverRefreshIntervalValue = this.settings.get_value("refresh-interval-ms").deep_unpack() / 1000;
 
-    refreshIntervalTextbox.set_range(3, 9999);
+    refreshIntervalTextbox.set_range(1, 9999);
     refreshIntervalTextbox.set_increments(1, 1);
     refreshIntervalTextbox.set_value(serverRefreshIntervalValue);
 

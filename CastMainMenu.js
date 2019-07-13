@@ -67,7 +67,7 @@ var CastControl = new Lang.Class({
 
 		// Get the latest device information
 		if (updateSource){
-			deviceArray = this._InvokeCastAPI("device");
+			deviceArray = this._InvokeCastAPI("device", "GET");
 		}
 
 		// Refresh the Now Playing labels if the device array is not empty
@@ -123,7 +123,7 @@ var CastControl = new Lang.Class({
 	// Create device menu action triggers
 	_hookUpActionTriggers : function(menuItem, deviceId, action){
 		menuItem.connect('activate', Lang.bind(this, function(){
-			this._InvokeCastAPI("device/" + deviceId + "/" + action);
+			this._InvokeCastAPI("device/" + deviceId + "/" + action, "GET");
 		}));
 	},
 
@@ -131,10 +131,10 @@ var CastControl = new Lang.Class({
 		switchItem.connect('toggled', Lang.bind(this, function(object, value){
 			if (value){
 				// We will just change the text content of the label
-				this._InvokeCastAPI("device/" + deviceId + "/" + "muted/true");
+				this._InvokeCastAPI("device/" + deviceId + "/" + "muted/true", "GET");
 			}
 			else{
-				this._InvokeCastAPI("device/" + deviceId + "/" + "muted/false");
+				this._InvokeCastAPI("device/" + deviceId + "/" + "muted/false", "GET");
 			}
 		}));
 	},
@@ -148,7 +148,7 @@ var CastControl = new Lang.Class({
 
 			// Get the list of Cast devices from the API
 			// Store the device items in the array
-			deviceArray = this._InvokeCastAPI("device");
+			deviceArray = this._InvokeCastAPI("device", "GET");
 
 			// Proceed if the device array is not empty
 			if (deviceArray != null && deviceArray.length > 0){
@@ -228,7 +228,7 @@ var CastControl = new Lang.Class({
 	},
 
 	_setupRefreshInterval: function(interval){
-		if (interval >= 3000){
+		if (interval >= 1000){
 			log("Cast API Refresh Interval Trigger set at interval " + interval + "ms...");
 
 			this._refreshInterval = Timers.setInterval(() => {
