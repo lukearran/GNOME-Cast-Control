@@ -283,14 +283,12 @@ var CastControl = new Lang.Class({
 		);
 
 		// Load the schema values
-		this.settings = new Gio.Settings({
-			settings_schema: this.schema.lookup('castcontrol.hello.lukearran.com', true)
-		});
+		this.settings = ExtensionUtils.getSettings('castcontrol.hello.lukearran.com');
 
 		// Get Setting Config
-		var refreshIntervalSetting = this.settings.get_value("refresh-interval-ms").deep_unpack();
-		this.apiHostname = this.settings.get_value("castapi-hostname").deep_unpack();
-		this.apiPort = this.settings.get_value("castapi-port").deep_unpack();
+		var refreshIntervalSetting = this.settings.get_int("refresh-interval-ms");
+		this.apiHostname = this.settings.get_string("castapi-hostname");
+		this.apiPort = this.settings.get_int("castapi-port");
 
 		// Setup a Soup Session
 		this.sessionSync = new Soup.SessionSync();

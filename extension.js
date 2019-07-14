@@ -44,7 +44,9 @@ function startServices(){
 
 }
 
-function init() {}
+function init() {
+	log(`Initializing ${Me.metadata.name} ${Me.metadata.version}`);
+}
 
 function enable() {
 	// Init the CastMainMenu which inherits a PanelMenu button

@@ -22,10 +22,7 @@ function buildPrefsWidget(){
     );
 
     // Load the schema values
-    this.settings = new Gio.Settings({
-        settings_schema: this.schema.lookup('castcontrol.hello.lukearran.com', true)
-    });
-
+    this.settings = ExtensionUtils.getSettings('castcontrol.hello.lukearran.com');
 
     // Create a parent widget that we'll return from this function
     let layout = new Gtk.Grid({
@@ -57,7 +54,7 @@ function buildPrefsWidget(){
         margin_right: 100
     });
 
-    var isAuto = this.settings.get_value("auto-castapi").deep_unpack();
+    var isAuto = this.settings.get_boolean("auto-castapi");
 
     autoStartSwitchControl.set_state(isAuto);
 
@@ -75,7 +72,7 @@ function buildPrefsWidget(){
         visible: true
     });
 
-    var hostnameValue = this.settings.get_value("castapi-hostname").deep_unpack();
+    var hostnameValue = this.settings.get_string("castapi-hostname");
 
     hostnameTextbox.set_text(hostnameValue);
 
@@ -96,7 +93,7 @@ function buildPrefsWidget(){
         climb_rate: 1
     });
 
-    var serverPortValue = this.settings.get_value("castapi-port").deep_unpack();
+    var serverPortValue = this.settings.get_int("castapi-port");
 
     portTextbox.set_range(1000, 9999);
     portTextbox.set_increments(1, 1);
@@ -118,7 +115,7 @@ function buildPrefsWidget(){
         climb_rate: 1
     });
 
-    var serverRefreshIntervalValue = this.settings.get_value("refresh-interval-ms").deep_unpack() / 1000;
+    var serverRefreshIntervalValue = this.settings.get_int("refresh-interval-ms") / 1000;
 
     refreshIntervalTextbox.set_range(1, 9999);
     refreshIntervalTextbox.set_increments(1, 1);
@@ -135,24 +132,24 @@ function buildPrefsWidget(){
     // On the Save Button clicked, apply settings
     saveButton.connect('clicked', (button) => {
         // Auto Start API
-        this.settings.set_value(
+        this.settings.set_boolean(
             'auto-castapi',
-            new GLib.Variant('b', autoStartSwitchControl.get_state())
+            autoStartSwitchControl.get_state()
         );
         // Hostname
-        this.settings.set_value(
+        this.settings.set_string(
             'castapi-hostname',
-            new GLib.Variant('s', hostnameTextbox.get_text())
+            hostnameTextbox.get_text()
         );
         // Port
-        this.settings.set_value(
+        this.settings.set_int(
             'castapi-port',
-            new GLib.Variant('i', portTextbox.get_value())
+            portTextbox.get_value()
         );
         // Refresh Interval
-        this.settings.set_value(
+        this.settings.set_int(
             'refresh-interval-ms',
-            new GLib.Variant('i', refreshIntervalTextbox.get_value() * 1000)
+            refreshIntervalTextbox.get_value() * 1000
         );
     });
 
