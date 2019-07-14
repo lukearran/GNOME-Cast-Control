@@ -12,20 +12,11 @@ let castControlButton;
 
 // Check if the extension should start / stop the API
 function isAutoControlEnabled(){
-	// Get the Setting's schema
-	this.schema = Gio.SettingsSchemaSource.new_from_directory(
-		Me.dir.get_child('schemas').get_path(),
-		Gio.SettingsSchemaSource.get_default(),
-		false
-	);
-
 	// Load the schema values
-	this.settings = new Gio.Settings({
-		settings_schema: this.schema.lookup('castcontrol.hello.lukearran.com', true)
-	});
+	this.settings = ExtensionUtils.getSettings('castcontrol.hello.lukearran.com');
 
 	// Get Setting Config
-	return this.settings.get_value("auto-castapi").deep_unpack();
+	return this.settings.get_boolean("auto-castapi");
 }
 
 /*

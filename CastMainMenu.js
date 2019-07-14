@@ -275,13 +275,6 @@ var CastControl = new Lang.Class({
 	// Constructor
 	_init: function() {
 
-		// Get the Setting's schema
-		this.schema = Gio.SettingsSchemaSource.new_from_directory(
-			Me.dir.get_child('schemas').get_path(),
-			Gio.SettingsSchemaSource.get_default(),
-			false
-		);
-
 		// Load the schema values
 		this.settings = ExtensionUtils.getSettings('castcontrol.hello.lukearran.com');
 
