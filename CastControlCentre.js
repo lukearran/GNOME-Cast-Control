@@ -17,7 +17,6 @@ function trySpawnCommandLine(command_line) {
         err.message = err.message.replace(/[^:]*: /, _("Could not parse command:") + "\n");
         throw err;
     }
-    log(success);
     util.trySpawn(argv);
 }
 

@@ -20,8 +20,6 @@ function isAutoControlEnabled(){
 Start services to launch Cast Control platform
 */
 function startServices(){
-	log("Starting Cast Control services....");
-
 	// Add the panel menu button to the GNOME status area
 	Main.panel.addToStatusArea('CastMainMenu', castControlButton, 0, 'right');
 

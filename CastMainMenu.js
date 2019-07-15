@@ -11,6 +11,9 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Timers = Me.imports.helpers.timers;
 
+const logMeta = (`${Me.metadata.name} ${Me.metadata.version}: `);
+
+var _signals;
 // Refresh settings
 var _refreshInterval;
 // HTTP Communication Settings
@@ -29,7 +32,7 @@ var CastControl = new Lang.Class({
 				// Create the base address from the settings
 				var baseAddress = "http://" + this.apiHostname + ":" + this.apiPort;
 				// Write to log
-				log(requestType + " Request Started to Cast API at " + baseAddress + "/" + endPoint);
+				log(logMeta + requestType + " Request Started to Cast API at " + baseAddress + "/" + endPoint);
 				// Create a GET message to the API /device
 				let request = Soup.Message.new(requestType.toUpperCase(), baseAddress + "/" + endPoint);
 
@@ -50,7 +53,7 @@ var CastControl = new Lang.Class({
 			}
 		}
 		catch (error){
-			log("Request Failed #" + requestId + ": Failed to get the list of connected Cast devices - is the Cast Web API running at " 
+			log(logMeta + "Request Failed #" + requestId + ": Failed to get the list of connected Cast devices - is the Cast Web API running at " 
 					+ this.apiHostname + ":" + this.apiPort + ": " + error);
 		}
 	},
@@ -92,9 +95,6 @@ var CastControl = new Lang.Class({
 	// a menu item for each device
 	_addCastDeviceMenuItems : function(_source, base){
 		try{
-			// We are creating a box layout with shell toolkit
-			let deviceTray = new St.BoxLayout();
-
 			if (_source != null && _source.length > 0){
 				for (device in _source){
 					// Create a parent sub-menu
@@ -142,10 +142,10 @@ var CastControl = new Lang.Class({
 					base.menu.addMenuItem(deviceMenuExpander);
 
 					// Connect event triggers to the media control buttons
-					base._hookUpActionTriggers(playMenuItem, _source[device].id, "play");
-					base._hookUpActionTriggers(pauseMenuItem, _source[device].id, "pause");
-					base._hookUpActionTriggers(stopMenuItem, _source[device].id, "stop");
-					base._hookUpMuteSwitchTriggers(muteSwitchItem, _source[device].id);	
+					base._hookUpActionTriggers(playMenuItem, _source[device].id, "play", base);
+					base._hookUpActionTriggers(pauseMenuItem, _source[device].id, "pause", base);
+					base._hookUpActionTriggers(stopMenuItem, _source[device].id, "stop", base);
+					base._hookUpMuteSwitchTriggers(muteSwitchItem, _source[device].id, base);	
 				}
 			}
 			// Otherwise show a menu item indicating that the is no devices
@@ -161,7 +161,7 @@ var CastControl = new Lang.Class({
 			let noItemsFoundMenu = new PopupMenu.PopupMenuItem("An error occurred...");
 			base.menu.addMenuItem(noItemsFoundMenu);
 			//Add to log
-			log("An error occurred on adding items to the menu. Reverting to error view: " + menuExp);
+			log(logMeta + "An error occurred on adding items to the menu. Reverting to error view: " + menuExp);
 		}
 
 		// Create a refresh button
@@ -172,25 +172,26 @@ var CastControl = new Lang.Class({
 		base.menu.addMenuItem(refreshMenuItem);
 
 		// Hook up the refresh menu button to a click trigger, which will call the refresh method
-		refreshMenuItem.connect('activate', Lang.bind(this, function(){
-			base._createMenuItems();
-		}));
+		base._createNewSignalId(refreshMenuItem, 
+			refreshMenuItem.connect('activate', Lang.bind(this, function(){
+				base._createMenuItems();
+		})));
 	},
 
 	_setupRefreshInterval: function(interval){
 		if (interval >= 1000){
-			log("Cast API Refresh Interval Trigger set at interval " + interval + "ms...");
+			log(logMeta + "Cast API Refresh Interval Trigger set at interval " + interval + "ms...");
 
 			this._refreshInterval = Timers.setInterval(() => {
 				if (!this.menu.isOpen){
 
 					this._createMenuItems();
 
-					log("Cast extension is now refreshed with API... waiting until next " + interval + "ms");
+					log(logMeta + "Now refreshed with API... waiting until next " + interval + "ms");
 
 				}
 				else{
-					log("Cast API extension was not refreshed as menu is currently open. Wait until menu is closed....");
+					log(logMeta + "Unable to refresh as menu is currently open. Refresh will only trigger when menu is closed.");
 				}
 			}, interval);
 		}
@@ -200,19 +201,20 @@ var CastControl = new Lang.Class({
 	},
 
 	_clearMenuItems : function(){
+		this._dropAllSignals();
 		this.menu.removeAll();
 	},
 
 	// Create device menu action triggers
-	_hookUpActionTriggers : function(menuItem, deviceId, action){
-		menuItem.connect('activate', Lang.bind(this, function(){
-			// Confusingly, the API uses a GET HTTP type for actions
-			this._InvokeCastAPI("device/" + deviceId + "/" + action, "GET");
-		}));
+	_hookUpActionTriggers : function(menuItem, deviceId, action, base){
+			this._createNewSignalId(menuItem, menuItem.connect('activate', Lang.bind(this, function(){
+				// Confusingly, the API uses a GET HTTP type for actions
+				this._InvokeCastAPI("device/" + deviceId + "/" + action, "GET");
+		})));
 	},
 
-	_hookUpMuteSwitchTriggers : function (switchItem, deviceId){
-		switchItem.connect('toggled', Lang.bind(this, function(object, value){
+	_hookUpMuteSwitchTriggers : function (switchItem, deviceId, base){
+		this._createNewSignalId(switchItem, switchItem.connect('toggled', Lang.bind(this, function(object, value){
 			if (value){
 				// Confusingly, the API uses a GET HTTP type for actions
 				this._InvokeCastAPI("device/" + deviceId + "/" + "muted/true", "GET");
@@ -220,7 +222,7 @@ var CastControl = new Lang.Class({
 			else{
 				this._InvokeCastAPI("device/" + deviceId + "/" + "muted/false", "GET");
 			}
-		}));
+		})));
 	},
 
     _createMenuItems: function(){
@@ -232,10 +234,29 @@ var CastControl = new Lang.Class({
 		this._InvokeCastAPI("device", "GET", this._addCastDeviceMenuItems);
 	},
 
+	_createNewSignalId(object, signal){
+		var signal = {
+			"source" : object,
+			"signal" : signal
+		};
+
+		this._signals.push(signal);
+	},
+
+	_dropAllSignals(){
+		for (let index = 0; index < this._signals.length; index++) {
+			const element = this._signals[index];
+			element.source.disconnect(element.signal);
+		}
+
+		this._signals = new Array();
+	},
+
 	// Constructor
 	_init: function() {
-		// Create a new session sync
 		this.sessionSync = new Soup.SessionAsync();
+
+		this._signals = new Array();
 
 		// Load the schema values
 		this.settings = ExtensionUtils.getSettings('castcontrol.hello.lukearran.com');
@@ -284,7 +305,21 @@ var CastControl = new Lang.Class({
 	},
 
 	destroy: function() {
+		// Clear the timer
 		Timers.clearInterval(this._refreshInterval);
+
+		// Disconnect signals
+		this._dropAllSignals();
+
+		// Destroy objects
+		this._refreshInterval = null;
+		this.sessionSync = null;
+		this.settings = null;
+		this.settingChangesId = null;
+		this.apiHostname = null;
+		this.apiPort = null;
+		this._signals = null;
+
 		this.parent();
 	}
 });
