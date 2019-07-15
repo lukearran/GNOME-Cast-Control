@@ -5,9 +5,6 @@ const mainMenu = Me.imports.CastMainMenu;
 const controlCentre = Me.imports.CastControlCentre;
 const Gio = imports.gi.Gio;
 
-/* 
-Global variables for use as button to click 
-*/
 let castControlButton;
 
 // Check if the extension should start / stop the API
@@ -47,7 +44,7 @@ function enable() {
 }
 
 function disable() {
-	if (this.isAutoControlEnabled){
+	if (this.isAutoControlEnabled()){
 		controlCentre.stop();
 	}
 

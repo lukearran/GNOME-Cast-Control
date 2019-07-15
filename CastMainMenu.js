@@ -1,37 +1,26 @@
-// Import St because is the library that allow you to create UI elements
 const St = imports.gi.St;
-// Import Clutter because is the library that allow you to layout UI elements
 const Clutter = imports.gi.Clutter;
-// Import Gio to store and return setting values
 const Gio = imports.gi.Gio;
-//Import PanelMenu and PopupMenu 
 const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
-//Import libsoup to create HTTP requests
 const Soup = imports.gi.Soup;
-//Import Lang because we will write code in a Object Oriented Manner
 const Lang = imports.lang;
-// Import Helper classes
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Timers = Me.imports.helpers.timers;
-// Collection of Now Playing labels by Cast Device ID
-var nowPlayingMapTitle = new Map();
-var nowPlayingMapSubTitle = new Map();
+
 // Refresh settings
 var _refreshInterval;
-// Settings
-let schema, settings, settingChangesId, apiHostname, apiPort, sessionSync;
+// HTTP Communication Settings
+let sessionSync, settings, settingChangesId, apiHostname, apiPort;
 
 var CastControl = new Lang.Class({
 	Name: 'CastControl',	// Class Name
 	Extends: PanelMenu.Button,	// Parent Class
 	
-	_InvokeCastAPI : function(endPoint, requestType){
-		var requestId = Math.random();
-
+	_InvokeCastAPI : function(endPoint, requestType, callback){
 		try{
 			// Cancel any pending/ongoing connections before creating a new one
 			this.sessionSync.abort();
@@ -40,18 +29,21 @@ var CastControl = new Lang.Class({
 				// Create the base address from the settings
 				var baseAddress = "http://" + this.apiHostname + ":" + this.apiPort;
 				// Write to log
-				log(requestType + " Request Started #" + requestId + " to Cast API at " + baseAddress + "/" + endPoint);
+				log(requestType + " Request Started to Cast API at " + baseAddress + "/" + endPoint);
 				// Create a GET message to the API /device
 				let request = Soup.Message.new(requestType.toUpperCase(), baseAddress + "/" + endPoint);
+
 				// Send the request to the server
-				this.sessionSync.send_message(request);
-				// Parse the response from the server
-				var jsonObj = JSON.parse(request.response_body.data);
+				this.sessionSync.queue_message(request, Lang.bind(this, function() {
+					// Parse the response from the server
+					var response = JSON.parse(request.response_body.data);
+					
+					if (typeof callback !== "undefined"){
+						// Pass the data onto the callback function
+						callback(response, this);
+					}
 
-				log(requestType + " Request Finished #" + requestId + ".");
-
-				// Convert the JSON response from the server
-				return jsonObj;
+				}));
 			}
 			else{
 				throw "Invalid hostname or port setting value of requesting Cast API";
@@ -62,115 +54,65 @@ var CastControl = new Lang.Class({
 					+ this.apiHostname + ":" + this.apiPort + ": " + error);
 		}
 	},
-		
-	refreshNowPlayingLabels : function(updateSource){
 
-		// Get the latest device information
-		if (updateSource){
-			deviceArray = this._InvokeCastAPI("device", "GET");
-		}
-
+	_getDeviceHeading : function(_device){
 		// Refresh the Now Playing labels if the device array is not empty
-		if (deviceArray != null && deviceArray.length > 0){
-			// Loop through each device
-			for (device in deviceArray){
-				log("Updating context label for device " + deviceArray[device].id + "... " + deviceArray[device].status.title);
+		if (_device != null){
+			// Declare variables to store the string for the labels
+			var playingLabelTextTitle, playingLabelTextSubTitle;
 
-				// Get the title label assigned to the corresponding menu label
-				var deviceLabelTitle = nowPlayingMapTitle.get(deviceArray[device].id);
-				// Get the sub-title title label assigned to the corresponding menu label
-				var deviceLabelSubTitle = nowPlayingMapSubTitle.get(deviceArray[device].id);
+			// Ensure the Status member contains a string, and is not the default application of Nest Hub / Chromecast
+			if (_device.status.application.length > 0 && _device.status.application != "Backdrop"){					
+				// Ensure the title member contains a value and is present
+				if (_device.status.title != null && _device.status.title.length > 0){
+					playingLabelTextTitle = _device.status.title;
 
-				// Declare variables to store the string for the labels
-				let playingLabelTextTitle, playingLabelTextSubTitle;
-
-				// Ensure the Status member contains a string, and is not the default application of Nest Hub / Chromecast
-				if (deviceArray[device].status.application.length > 0 && deviceArray[device].status.application != "Backdrop"){					
-					// Ensure the title member contains a value and is present
-					if (deviceArray[device].status.title != null && deviceArray[device].status.title.length > 0){
-						playingLabelTextTitle = deviceArray[device].status.title;
-
-						if (deviceArray[device].status.subtitle != undefined && deviceArray[device].status.subtitle.length > 0){
-							playingLabelTextTitle += " - " + deviceArray[device].status.subtitle;
-						}
-
-						playingLabelTextSubTitle = deviceArray[device].status.application;
+					if (_device.status.subtitle != undefined && _device.status.subtitle.length > 0){
+						playingLabelTextTitle += " - " + _device.status.subtitle;
 					}
-					// Otherwise just display the application
-					else{
-						playingLabelTextTitle = "Now Playing";
-						playingLabelTextSubTitle = deviceArray[device].status.application;
-					}
+
+					playingLabelTextSubTitle = _device.status.application;
 				}
+				// Otherwise just display the application
 				else{
-					playingLabelTextTitle = "Nothing playing...";
-					playingLabelTextSubTitle = "";
+					playingLabelTextTitle = "Now Playing";
+					playingLabelTextSubTitle = _device.status.application;
 				}
-
-				// Set the string to the label object text
-				deviceLabelTitle.set_text(playingLabelTextTitle);
-				deviceLabelSubTitle.set_text(playingLabelTextSubTitle);
-
-			}		
-		}
-	},
-
-	
-	_clearMenuItems : function(){
-		this.menu.removeAll();
-	},
-
-	// Create device menu action triggers
-	_hookUpActionTriggers : function(menuItem, deviceId, action){
-		menuItem.connect('activate', Lang.bind(this, function(){
-			this._InvokeCastAPI("device/" + deviceId + "/" + action, "GET");
-		}));
-	},
-
-	_hookUpMuteSwitchTriggers : function (switchItem, deviceId){
-		switchItem.connect('toggled', Lang.bind(this, function(object, value){
-			if (value){
-				// We will just change the text content of the label
-				this._InvokeCastAPI("device/" + deviceId + "/" + "muted/true", "GET");
 			}
 			else{
-				this._InvokeCastAPI("device/" + deviceId + "/" + "muted/false", "GET");
+				playingLabelTextTitle = "Nothing playing...";
+				playingLabelTextSubTitle = "";
 			}
-		}));
+		}
+
+		return new Array(playingLabelTextTitle, playingLabelTextSubTitle);
 	},
 
 	// Requests the list of all device items from the server, and creates
 	// a menu item for each device
-	_addCastDeviceMenuItems : function(){
+	_addCastDeviceMenuItems : function(_source, base){
 		try{
 			// We are creating a box layout with shell toolkit
 			let deviceTray = new St.BoxLayout();
 
-			// Get the list of Cast devices from the API
-			// Store the device items in the array
-			deviceArray = this._InvokeCastAPI("device", "GET");
-
-			// Proceed if the device array is not empty
-			if (deviceArray != null && deviceArray.length > 0){
-
-				// For every device item in the array, complete the following statement
-				for (device in deviceArray){
+			if (_source != null && _source.length > 0){
+				for (device in _source){
 					// Create a parent sub-menu
-					let deviceMenuExpander = 
-						new PopupMenu.PopupSubMenuMenuItem(
-							deviceArray[device].name);
+					let deviceMenuExpander = new PopupMenu.PopupSubMenuMenuItem(_source[device].name);
 
 					// Create the title labels
-					let labelMediaApp = new St.Label({text:"Loading..."});
-					let labelMediaAppSubtitle = new St.Label({text:"Loading..."});
-
-					// To refresh the labels at a later point, map the label object to the device ID
-					nowPlayingMapTitle.set(deviceArray[device].id, labelMediaApp);
-					nowPlayingMapSubTitle.set(deviceArray[device].id, labelMediaAppSubtitle);
+					let labelMediaApp = new St.Label(
+						{
+							text: base._getDeviceHeading(_source[device])[0]
+						});
+					let labelMediaAppSubtitle = new St.Label(
+						{
+							text: base._getDeviceHeading(_source[device])[1]
+						});
 
 					// Add the title and sub-title to the box
-					deviceMenuExpander.menu.box.add(nowPlayingMapTitle.get(deviceArray[device].id));
-					deviceMenuExpander.menu.box.add(nowPlayingMapSubTitle.get(deviceArray[device].id));
+					deviceMenuExpander.menu.box.add(labelMediaApp);
+					deviceMenuExpander.menu.box.add(labelMediaAppSubtitle);
 
 					// Set the stylesheet which applies a margin to the label
 					deviceMenuExpander.menu.box.style_class = 'PopupSubMenuMenuItemStyle';
@@ -192,39 +134,47 @@ var CastControl = new Lang.Class({
 					deviceMenuExpander.menu.addMenuItem(muteSwitchItem);
 
 
-					if(deviceArray[device].status.muted){
+					if(_source[device].status.muted){
 						muteSwitchItem.toggle();
 					}
 
 					// Add this device drop-down menu to the parent menu
-					this.menu.addMenuItem(deviceMenuExpander);
+					base.menu.addMenuItem(deviceMenuExpander);
 
 					// Connect event triggers to the media control buttons
-					this._hookUpActionTriggers(playMenuItem, deviceArray[device].id, "play");
-					this._hookUpActionTriggers(pauseMenuItem, deviceArray[device].id, "pause");
-					this._hookUpActionTriggers(stopMenuItem, deviceArray[device].id, "stop");
-					this._hookUpMuteSwitchTriggers(muteSwitchItem, deviceArray[device].id);
-					
+					base._hookUpActionTriggers(playMenuItem, _source[device].id, "play");
+					base._hookUpActionTriggers(pauseMenuItem, _source[device].id, "pause");
+					base._hookUpActionTriggers(stopMenuItem, _source[device].id, "stop");
+					base._hookUpMuteSwitchTriggers(muteSwitchItem, _source[device].id);	
 				}
-
-				// Once the labels have been created, refresh them once more
-				this.refreshNowPlayingLabels(false);
 			}
 			// Otherwise show a menu item indicating that the is no devices
 			else{
 				let noItemsFoundMenu = new PopupMenu.PopupMenuItem("No devices found...");
-				this.menu.addMenuItem(noItemsFoundMenu);
+				base.menu.addMenuItem(noItemsFoundMenu);
 			}
 		}
 		catch (menuExp){
-			// Remove all items in the menu list
-			this._clearMenuItems();
-			// Show error menu
-			let noItemsFoundMenu = new PopupMenu.PopupMenuItem("A problem occurred...");
-			this.menu.addMenuItem(noItemsFoundMenu);
-			// Add to log
+			//Remove all items in the menu list
+			base._clearMenuItems();
+			//Show error menu
+			let noItemsFoundMenu = new PopupMenu.PopupMenuItem("An error occurred...");
+			base.menu.addMenuItem(noItemsFoundMenu);
+			//Add to log
 			log("An error occurred on adding items to the menu. Reverting to error view: " + menuExp);
 		}
+
+		// Create a refresh button
+		let refreshMenuItem = new PopupMenu.PopupImageMenuItem('Refresh', 'view-refresh-symbolic');
+		// Add a separator between the device list and the refresh button
+		base.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+		// Add the refresh button
+		base.menu.addMenuItem(refreshMenuItem);
+
+		// Hook up the refresh menu button to a click trigger, which will call the refresh method
+		refreshMenuItem.connect('activate', Lang.bind(this, function(){
+			base._createMenuItems();
+		}));
 	},
 
 	_setupRefreshInterval: function(interval){
@@ -249,31 +199,43 @@ var CastControl = new Lang.Class({
 		}
 	},
 
+	_clearMenuItems : function(){
+		this.menu.removeAll();
+	},
+
+	// Create device menu action triggers
+	_hookUpActionTriggers : function(menuItem, deviceId, action){
+		menuItem.connect('activate', Lang.bind(this, function(){
+			// Confusingly, the API uses a GET HTTP type for actions
+			this._InvokeCastAPI("device/" + deviceId + "/" + action, "GET");
+		}));
+	},
+
+	_hookUpMuteSwitchTriggers : function (switchItem, deviceId){
+		switchItem.connect('toggled', Lang.bind(this, function(object, value){
+			if (value){
+				// Confusingly, the API uses a GET HTTP type for actions
+				this._InvokeCastAPI("device/" + deviceId + "/" + "muted/true", "GET");
+			}
+			else{
+				this._InvokeCastAPI("device/" + deviceId + "/" + "muted/false", "GET");
+			}
+		}));
+	},
+
     _createMenuItems: function(){
-        // Create a refresh button
-		let refreshMenuItem = new PopupMenu.PopupImageMenuItem('Refresh', 'view-refresh-symbolic');
-		
 		// Set a fixed width to the menu to ensure consistency
 		this.menu.box.width = 350;
-
 		// Clear menu items, if items have already been created
 		this._clearMenuItems();
-
         // Create menu item for each Cast device
-		this._addCastDeviceMenuItems();
-		// Add a separator between the device list and the refresh button
-		this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-		// Add the refresh button
-		this.menu.addMenuItem(refreshMenuItem);
-
-        // Hook up the refresh menu button to a click trigger, which will call the refresh method
-        refreshMenuItem.connect('activate', Lang.bind(this, function(){
-			this._createMenuItems();
-		}));
+		this._InvokeCastAPI("device", "GET", this._addCastDeviceMenuItems);
 	},
 
 	// Constructor
 	_init: function() {
+		// Create a new session sync
+		this.sessionSync = new Soup.SessionAsync();
 
 		// Load the schema values
 		this.settings = ExtensionUtils.getSettings('castcontrol.hello.lukearran.com');
@@ -282,10 +244,6 @@ var CastControl = new Lang.Class({
 		var refreshIntervalSetting = this.settings.get_int("refresh-interval-ms");
 		this.apiHostname = this.settings.get_string("castapi-hostname");
 		this.apiPort = this.settings.get_int("castapi-port");
-
-		// Setup a Soup Session
-		this.sessionSync = new Soup.SessionSync();
-		this.sessionSync.max_conns = 1;
 
 		// Setup background refresh with the interval value
 		this._setupRefreshInterval(refreshIntervalSetting);
