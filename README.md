@@ -33,4 +33,5 @@ The extension is currently being reviewed for listing on the GNOME Extensions si
 2. Git Clone or download a zip of this repository and extract to the root directory of *'~/.local/share/gnome-shell/extensions/castcontrol@hello.lukearran.com'* (create the directory if it does not exists)
 3. Restart your desktop, or GNOME Shell
 4. Enable "Cast Control" in the GNOME Tweaks Tool
-5. Enjoy
+5. Wait up to 5 minutes for cast-web-api-cli to detect devices in your local network 
+6. Enjoy
