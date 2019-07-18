@@ -19,7 +19,7 @@ A simple GNOME extension client for [vervallsweg's Cast Web API Node application
 ## Requirements
 
 * GNOME Shell >= 3.32
-* Install the Snap package 'cast-web-api-cli'
+* [Node.JS application 'cast-web-api-cli'](https://github.com/lukearran/cast-web-api-cli)
 
 ## Automatic Installation
 
