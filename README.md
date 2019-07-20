@@ -29,7 +29,7 @@ The extension is currently being reviewed for listing on the GNOME Extensions si
 
 1. [Install the Node.JS application 'cast-web-api-cli'](https://github.com/lukearran/cast-web-api-cli) - a Snap package is on the way!
     1. sudo apt-get install npm
-    2. sudo npm install cast-web-api-cli
+    2. sudo npm install cast-web-api-cli -g
 2. Git Clone or download a zip of this repository and extract to the root directory of *'~/.local/share/gnome-shell/extensions/castcontrol@hello.lukearran.com'* (create the directory if it does not exists)
 3. Restart your desktop, or GNOME Shell
 4. Enable "Cast Control" in the GNOME Tweaks Tool
