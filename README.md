@@ -21,11 +21,16 @@ A simple GNOME extension client for [vervallsweg's Cast Web API Node application
 * GNOME Shell >= 3.32
 * [Node.JS application 'cast-web-api-cli'](https://github.com/lukearran/cast-web-api-cli)
 
-## Automatic Installation
+## Automatic Installation via GNOME Extension site
 
-The extension is currently being reviewed for listing on the GNOME Extensions site. Check back soon!
+1. [Install the Node.JS application 'cast-web-api-cli'](https://github.com/lukearran/cast-web-api-cli) - a Snap package is on the way!
+    1. sudo apt-get install npm
+    2. sudo npm install cast-web-api-cli -g
+2. [Install the extension via GNOME](https://extensions.gnome.org/extension/1955/cast-control/)
+3. Wait up to 5 minutes for cast-web-api-cli to start and locate devices in your local network.
+4. Enjoy!
 
-## Manual Installation
+## Manual Installation via GitHub
 
 1. [Install the Node.JS application 'cast-web-api-cli'](https://github.com/lukearran/cast-web-api-cli) - a Snap package is on the way!
     1. sudo apt-get install npm
