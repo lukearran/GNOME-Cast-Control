@@ -8,6 +8,8 @@ const GObject = imports.gi.GObject;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
+const compat = Me.imports.helpers.compatibility;
+
 
 function init(){
 
@@ -15,7 +17,7 @@ function init(){
 
 function buildPrefsWidget(){
     // Load the schema values
-    this.settings = ExtensionUtils.getSettings('castcontrol.hello.lukearran.com');
+    this.settings = this.compat.getExtensionUtilsSettings().getSettings('castcontrol.hello.lukearran.com');
 
     // Create a parent widget that we'll return from this function
     let layout = new Gtk.Grid({
