@@ -3,6 +3,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const mainMenu = Me.imports.CastMainMenu;
 const controlCentre = Me.imports.CastControlCentre;
+const compat = Me.imports.helpers.compatibility;
 const Gio = imports.gi.Gio;
 
 let castControlButton;
@@ -10,8 +11,7 @@ let castControlButton;
 // Check if the extension should start / stop the API
 function isAutoControlEnabled(){
 	// Load the schema values
-	this.settings = ExtensionUtils.getSettings('castcontrol.hello.lukearran.com');
-
+	this.settings = this.compat.getExtensionUtilsSettings().getSettings('castcontrol.hello.lukearran.com');
 	// Get Setting Config
 	return this.settings.get_boolean("auto-castapi");
 }

@@ -1,8 +1,8 @@
 {
-    "name": "Cast Control", 
-    "description": "Control Google Cast devices on your local network.", 
-    "version": 0.1,
-    "uuid": "castcontrol@hello.lukearran.com", 
-    "url": "https://github.com/lukearran/GNOME-Cast-Control",
-    "shell-version": ["3.32", "3.31"]
+  "name": "Cast Control", 
+  "description": "Control Google Cast devices on your local network.", 
+  "version": 2,
+  "uuid": "castcontrol@hello.lukearran.com", 
+  "url": "https://github.com/lukearran/GNOME-Cast-Control",
+  "shell-version": ["3.32", "3.31"]
 }

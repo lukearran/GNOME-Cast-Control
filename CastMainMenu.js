@@ -10,6 +10,8 @@ const Lang = imports.lang;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Timers = Me.imports.helpers.timers;
+const compat = Me.imports.helpers.compatibility;
+
 
 const logMeta = (`${Me.metadata.name} ${Me.metadata.version}: `);
 
@@ -259,7 +261,8 @@ var CastControl = new Lang.Class({
 		this._signals = new Array();
 
 		// Load the schema values
-		this.settings = ExtensionUtils.getSettings('castcontrol.hello.lukearran.com');
+
+		this.settings = compat.getExtensionUtilsSettings().getSettings('castcontrol.hello.lukearran.com');
 
 		// Get Setting Config
 		var refreshIntervalSetting = this.settings.get_int("refresh-interval-ms");
