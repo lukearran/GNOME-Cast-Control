@@ -23,7 +23,7 @@ A simple GNOME extension client for [vervallsweg's Cast Web API Node application
 
 ## Automatic Installation via GNOME Extension site
 
-1. [Install the Node.JS application 'cast-web-api-cli'](https://github.com/lukearran/cast-web-api-cli) - a Snap package is on the way!
+1. [Install the Node.JS application 'cast-web-api-cli'](https://github.com/lukearran/cast-web-api-cli)
     1. sudo apt-get install npm
     2. sudo npm install cast-web-api-cli -g
 2. [Install the extension via GNOME](https://extensions.gnome.org/extension/1955/cast-control/)
@@ -32,7 +32,7 @@ A simple GNOME extension client for [vervallsweg's Cast Web API Node application
 
 ## Manual Installation via GitHub
 
-1. [Install the Node.JS application 'cast-web-api-cli'](https://github.com/lukearran/cast-web-api-cli) - a Snap package is on the way!
+1. [Install the Node.JS application 'cast-web-api-cli'](https://github.com/lukearran/cast-web-api-cli)
     1. sudo apt-get install npm
     2. sudo npm install cast-web-api-cli -g
 2. Git Clone or download a zip of this repository and extract to the root directory of *'~/.local/share/gnome-shell/extensions/castcontrol@hello.lukearran.com'* (create the directory if it does not exists)
