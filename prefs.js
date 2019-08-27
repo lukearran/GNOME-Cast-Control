@@ -155,7 +155,7 @@ function buildPrefsWidget(){
         label: " Don't have Cast API installed? ",
         halign: Gtk.Align.START,
         visible: true,
-        uri: 'https://github.com/vervallsweg/cast-web-api-cli'
+        uri: 'https://github.com/lukearran/GNOME-Cast-Control'
     });
 
     layout.attach_next_to(getApiButton, saveButton, Gtk.PositionType.LEFT, 1, 1);
