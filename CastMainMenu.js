@@ -11,6 +11,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Timers = Me.imports.helpers.timers;
 const compat = Me.imports.helpers.compatibility;
+const Config = imports.misc.config;
 
 
 const logMeta = (`${Me.metadata.name} ${Me.metadata.version}: `);
@@ -62,14 +63,14 @@ var CastControl = new Lang.Class({
 
 	_getDeviceHeading : function(_device){
 		// Refresh the Now Playing labels if the device array is not empty
-		if (_device != null){
+		if (_device != undefined){
 			// Declare variables to store the string for the labels
 			var playingLabelTextTitle, playingLabelTextSubTitle;
 
 			// Ensure the Status member contains a string, and is not the default application of Nest Hub / Chromecast
 			if (_device.status.application.length > 0 && _device.status.application != "Backdrop"){					
 				// Ensure the title member contains a value and is present
-				if (_device.status.title != null && _device.status.title.length > 0){
+				if (_device.status.title != undefined && _device.status.title.length > 0){
 					playingLabelTextTitle = _device.status.title;
 
 					if (_device.status.subtitle != undefined && _device.status.subtitle.length > 0){
@@ -97,19 +98,19 @@ var CastControl = new Lang.Class({
 	// a menu item for each device
 	_addCastDeviceMenuItems : function(_source, base){
 		try{
-			if (_source != null && _source.length > 0){
-				for (device in _source){
+			if (_source != undefined && _source.length > 0) {
+				_source.forEach((device) => {
 					// Create a parent sub-menu
-					let deviceMenuExpander = new PopupMenu.PopupSubMenuMenuItem(_source[device].name);
+					let deviceMenuExpander = new PopupMenu.PopupSubMenuMenuItem(device.name);
 
 					// Create the title labels
 					let labelMediaApp = new St.Label(
 						{
-							text: base._getDeviceHeading(_source[device])[0]
+							text: base._getDeviceHeading(device)[0]
 						});
 					let labelMediaAppSubtitle = new St.Label(
 						{
-							text: base._getDeviceHeading(_source[device])[1]
+							text: base._getDeviceHeading(device)[1]
 						});
 
 					// Add the title and sub-title to the box
@@ -132,11 +133,11 @@ var CastControl = new Lang.Class({
 					deviceMenuExpander.menu.addMenuItem(stopMenuItem);				
 
 					// Mute Switch
-					let muteSwitchItem = new PopupMenu.PopupSwitchMenuItem('Mute');
+					let muteSwitchItem = new PopupMenu.PopupSwitchMenuItem('Mute', false, {});
 					deviceMenuExpander.menu.addMenuItem(muteSwitchItem);
 
 
-					if(_source[device].status.muted){
+					if(device.status.muted){
 						muteSwitchItem.toggle();
 					}
 
@@ -144,11 +145,11 @@ var CastControl = new Lang.Class({
 					base.menu.addMenuItem(deviceMenuExpander);
 
 					// Connect event triggers to the media control buttons
-					base._hookUpActionTriggers(playMenuItem, _source[device].id, "play", base);
-					base._hookUpActionTriggers(pauseMenuItem, _source[device].id, "pause", base);
-					base._hookUpActionTriggers(stopMenuItem, _source[device].id, "stop", base);
-					base._hookUpMuteSwitchTriggers(muteSwitchItem, _source[device].id, base);	
-				}
+					base._hookUpActionTriggers(playMenuItem, device.id, "play", base);
+					base._hookUpActionTriggers(pauseMenuItem, device.id, "pause", base);
+					base._hookUpActionTriggers(stopMenuItem, device.id, "stop", base);
+					base._hookUpMuteSwitchTriggers(muteSwitchItem, device.id, base);	
+				});
 			}
 			// Otherwise show a menu item indicating that the is no devices
 			else{
