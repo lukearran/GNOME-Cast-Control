@@ -9,7 +9,7 @@ function getExtensionUtilsSettings(){
 
         return ExtensionUtils;
     }
-    catch{
+    catch(err){
         return Me.imports.helpers.convenience;
     }
 }
