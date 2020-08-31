@@ -1,5 +1,71 @@
 .PopupSubMenuMenuItemStyle {
 	margin: 10px;
 	padding-left: 20px;
-	width:10%;
+	/*width:10%;*/
+}
+
+.mediaImage { 
+	width: 50px;
+	height: 50px;
+	background-size: 50px;
+	margin:0.2em;
+}
+
+.volumeLabel {
+	font-size: larger;
+	width: 20px;
+	height: 20px;
+}
+
+
+.appIcon {
+	width: 20px;
+	height: 20px;
+	margin:0.2em;
+}
+
+.titleLayout {
+	width: 80%;
+	/*background-color: red;*/
+}
+
+.titleLayoutTitleTitles {
+	margin: 1.5em;
+}
+
+.titleLayoutImage {
+	/* background-color: green;*/
+	width: 50px;
+	height: 50px;
+}
+
+
+.labelTitle {
+	width: auto;
+	line-height: 1.2em;
+}
+
+.titleLayoutTitleApp {
+	/*background-color: blue;*/
+	width: 20px;
+	height: 20px;
+}
+
+.PopupImageMenuItem {
+	color: black;
+	width: 50px;
+}
+
+.PopupImageMenuItem:hover {
+	background-color: #777777;
+}
+
+
+.PopupImageMenuVolume {
+	color: black;
+	width: 50px;
+}
+
+.PopupImageMenuVolume:hover {
+	background-color: #777777;
 }
