@@ -1,6 +1,6 @@
 # Google Cast Control for GNOME Shell
 
-![screenshot](https://raw.githubusercontent.com/lukearran/castcontrol-hello.lukearran.com/master/screenshot.png)
+![screenshot](https://raw.githubusercontent.com/SamyGarib/GNOME-Cast-Control/master/screen-shot-v2.png)
 
 A simple GNOME extension client for [vervallsweg's Cast Web API Node application](https://github.com/vervallsweg/cast-web-api-cli) - control the playback of Google Cast devices from the GNOME shell.
 
@@ -13,8 +13,10 @@ A simple GNOME extension client for [vervallsweg's Cast Web API Node application
 - [X] Change Cast API Port
 - [X] Settings / Setup Wizard
 - [X] Automatically start Cast Web API on the extension being created
+- [X] Control Device Volume. (v2)
 - [ ] Bundle cast-web-api-cli into an installable Snap package
-- [ ] Display Now Playing Media Images
+- [X] Display Now Playing Media Images (v2)
+- [X] Display Device Status in the List (v2)
 
 ## Requirements
 

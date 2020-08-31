@@ -1,4 +1,5 @@
 const St = imports.gi.St;
+const Gtk = imports.gi.Gtk;
 const Clutter = imports.gi.Clutter;
 const Gio = imports.gi.Gio;
 const Main = imports.ui.main;
@@ -65,10 +66,10 @@ var CastControl = new Lang.Class({
 		// Refresh the Now Playing labels if the device array is not empty
 		if (_device != undefined){
 			// Declare variables to store the string for the labels
-			var playingLabelTextTitle, playingLabelTextSubTitle;
-
+			var playingLabelTextTitle, playingLabelTextSubTitle, playingLabeImageUri, deviceVolume;
+			deviceVolume= _device.status.volume;
 			// Ensure the Status member contains a string, and is not the default application of Nest Hub / Chromecast
-			if (_device.status.application.length > 0 && _device.status.application != "Backdrop"){					
+			if (_device.status.application.length > 0 && _device.status.application != "Backdrop"){
 				// Ensure the title member contains a value and is present
 				if (_device.status.title != undefined && _device.status.title.length > 0){
 					playingLabelTextTitle = _device.status.title;
@@ -76,22 +77,24 @@ var CastControl = new Lang.Class({
 					if (_device.status.subtitle != undefined && _device.status.subtitle.length > 0){
 						playingLabelTextTitle += " - " + _device.status.subtitle;
 					}
-
+					playingLabeImageUri = _device.status.image;
 					playingLabelTextSubTitle = _device.status.application;
 				}
 				// Otherwise just display the application
 				else{
 					playingLabelTextTitle = "Now Playing";
 					playingLabelTextSubTitle = _device.status.application;
+					playingLabeImageUri = "";
 				}
 			}
 			else{
 				playingLabelTextTitle = "Nothing playing...";
 				playingLabelTextSubTitle = "";
+				playingLabeImageUri = "";
 			}
 		}
 
-		return new Array(playingLabelTextTitle, playingLabelTextSubTitle);
+		return new Array(playingLabelTextTitle, playingLabelTextSubTitle, playingLabeImageUri,deviceVolume);
 	},
 
 	// Requests the list of all device items from the server, and creates
@@ -101,41 +104,178 @@ var CastControl = new Lang.Class({
 			if (_source != undefined && _source.length > 0) {
 				_source.forEach((device) => {
 					// Create a parent sub-menu
-					let deviceMenuExpander = new PopupMenu.PopupSubMenuMenuItem(device.name);
+					//Read Current Volume from array.
+					let headingData = base._getDeviceHeading(device);
+					let strTitle = headingData[0];
+					let deviceApp=headingData[1];
+					let imageUrl = headingData[2];
+					let currentDeviceVolume = headingData[3];
 
-					// Create the title labels
-					let labelMediaApp = new St.Label(
-						{
-							text: base._getDeviceHeading(device)[0]
-						});
-					let labelMediaAppSubtitle = new St.Label(
-						{
-							text: base._getDeviceHeading(device)[1]
-						});
 
-					// Add the title and sub-title to the box
-					deviceMenuExpander.menu.box.add(labelMediaApp);
-					deviceMenuExpander.menu.box.add(labelMediaAppSubtitle);
+					/* Set up Play/Pause Icon for Device Title */
+					let devicePlayingStatus = "";
+					switch (device.status.status) {
+						case "PLAYING":
+							devicePlayingStatus ="⏯️";break;							
+						case "PAUSED":
+							devicePlayingStatus ="⏸";break;
+						default:
+							devicePlayingStatus ="";
+	
+					}
+
+					/* Set Up Volume Indicator for Device Title */
+					let deviceVolumeIndicator = "🔇";
+					if (device.status.muted == false) {
+						if (currentDeviceVolume>=0) deviceVolumeIndicator="🔈";
+						if (currentDeviceVolume>35) deviceVolumeIndicator="🔉";
+						if (currentDeviceVolume>75) deviceVolumeIndicator="🔊";
+					}
+					
+
+					/* Calculate Display Name */
+					let displayName = device.name;					
+
+					/* The Title of the device, with indicators. */
+					let menuName = "" + deviceVolumeIndicator + " " + devicePlayingStatus + " " + displayName;
+
+					/* Create MenuExpander To nest Elements. */
+					let deviceMenuExpander = new PopupMenu.PopupSubMenuMenuItem(menuName);
 
 					// Set the stylesheet which applies a margin to the label
 					deviceMenuExpander.menu.box.style_class = 'PopupSubMenuMenuItemStyle';
 
+
+					/* LayOut Elements to Nest */
+					let titleLayout = new St.BoxLayout({style_class:"titleLayout"});
+					let titleLayoutImage = new St.BoxLayout({style_class:"titleLayoutImage"});
+					let titleLayoutTitle = new St.BoxLayout({style_class:"titleLayoutTitle"});
+					let titleLayoutTitleApp = new St.BoxLayout({style_class:"titleLayoutTitleApp"});
+					let titleLayoutTitleTitles = new St.BoxLayout({style_class:"titleLayoutTitleTitles", vertical:true});
+					
+
+					// Set the application vs icons replacement array.
+					let appsIcons = {
+						Spotify: 'icons/spotify-linux-256.png',
+						YouTube: 'icons/youtube-linux-256.png'
+					};
+
+					/* If there is a app image, add it to its layout containter */
+					if (typeof appsIcons[deviceApp] != 'undefined') {
+						let giconApp = Gio.icon_new_for_string(Me.path+"/"+appsIcons[deviceApp]);
+						let currentAppImage = new St.Icon({ gicon: giconApp, style_class: 'appIcon' });
+						titleLayoutTitleApp.add(currentAppImage,{y_fill:false,y_align: St.Align.MIDDLE});	
+					}
+
+					/* If there is a cover image, add it to its layout containter */
+					if (typeof imageUrl != '') {
+						let giconApp = Gio.icon_new_for_string(imageUrl);
+						let currentAppImage = new St.Icon({ gicon: giconApp, style_class: 'mediaImage' });
+						titleLayoutImage.add_actor(currentAppImage);	
+					}
+
+
+					// Create the title labels
+					let strTitleSplit = strTitle.split("-");
+					/* Split the title by -, and add every line to a vertical containter */
+					strTitleSplit.forEach(element => {
+						let tag=element.trim().substring(0,35);
+						let labelMediaApp = new St.Label(
+							{
+								text: tag,
+								style_class: 'labelTitle'
+							});
+							titleLayoutTitleTitles.add_actor(labelMediaApp);	
+					});
+
+				
+					/* Add elements in its containers */
+					titleLayoutTitle.add_actor(titleLayoutTitleTitles);
+					titleLayoutTitle.add_actor(titleLayoutTitleApp);
+					titleLayout.add_actor(titleLayoutImage);
+					titleLayout.add_actor(titleLayoutTitle);
+
+					/* Add the Title Layout on the menu. */
+					deviceMenuExpander.menu.box.add(titleLayout);
+
+					/* Add a separator ... */
+					
+					//deviceMenuExpander.menu.box.add(new PopupMenu.PopupSeperatorMenuItem());
+
+					
 					// Create a Play Menu Item
-					let playMenuItem = new PopupMenu.PopupImageMenuItem('Play', 'media-playback-start-symbolic');
-					deviceMenuExpander.menu.addMenuItem(playMenuItem);
+					let playMenuItem = new PopupMenu.PopupImageMenuItem('', 'media-playback-start-symbolic');
+					playMenuItem.style_class="PopupImageMenuItem";
 
 					// Create a Pause Menu Item
-					let pauseMenuItem = new PopupMenu.PopupImageMenuItem('Pause', 'media-playback-pause-symbolic');
-					deviceMenuExpander.menu.addMenuItem(pauseMenuItem);
-
+					let pauseMenuItem = new PopupMenu.PopupImageMenuItem('', 'media-playback-pause-symbolic');
+					pauseMenuItem.style_class="PopupImageMenuItem";
 					// Create a Stop Menu Item
-					let stopMenuItem = new PopupMenu.PopupImageMenuItem('Stop', 'media-playback-stop-symbolic');
-					deviceMenuExpander.menu.addMenuItem(stopMenuItem);				
+					let stopMenuItem = new PopupMenu.PopupImageMenuItem('', 'media-playback-stop-symbolic');
+					stopMenuItem.style_class="PopupImageMenuItem";
+					// Create a Next Menu Item
+					let skipMenuItem = new PopupMenu.PopupImageMenuItem('', 'media-seek-forward-symbolic');
+					skipMenuItem.style_class="PopupImageMenuItem";
+					// Create a Next Menu Item
+					let nextMenuItem = new PopupMenu.PopupImageMenuItem('', 'media-skip-forward-symbolic');
+					nextMenuItem.style_class="PopupImageMenuItem";
+					// Create a Next Menu Item
+					let restartMenuItem = new PopupMenu.PopupImageMenuItem('', 'media-skip-backward-symbolic');
+					restartMenuItem.style_class="PopupImageMenuItem";
+
+					// Add Buttons to the box.					
+					let buttonsLayout = new St.BoxLayout();
+					buttonsLayout.add_actor(stopMenuItem);
+					buttonsLayout.add_actor(restartMenuItem);
+					buttonsLayout.add_actor(pauseMenuItem);
+					buttonsLayout.add_actor(playMenuItem);
+					buttonsLayout.add_actor(nextMenuItem);
+					buttonsLayout.add_actor(skipMenuItem);
+
+
+					// Create Volume Layout
+
+					// Create Buttons Volume Up and Down.
+					let volumeMenuItem0 = new PopupMenu.PopupImageMenuItem('', 'audio-volume-muted-symbolic');
+					volumeMenuItem0.style_class="PopupImageMenuVolume";
+					let volumeMenuItem25 = new PopupMenu.PopupImageMenuItem('', 'audio-volume-low-symbolic');
+					volumeMenuItem25.style_class="PopupImageMenuVolume";
+					let volumeMenuItem50 = new PopupMenu.PopupImageMenuItem('', 'audio-volume-medium-symbolic');
+					volumeMenuItem50.style_class="PopupImageMenuVolume";
+					let volumeMenuItem75 = new PopupMenu.PopupImageMenuItem('', 'audio-volume-high-symbolic');
+					volumeMenuItem75.style_class="PopupImageMenuVolume";
+					let volumeMenuItem100 = new PopupMenu.PopupImageMenuItem('', 'audio-volume-overamplified-symbolic');
+					volumeMenuItem100.style_class="PopupImageMenuVolume";
+
+					// Create Box and add buttons.
+					let volumeLayout = new St.BoxLayout();
+
+					volumeLayout.add_actor(volumeMenuItem0);
+					volumeLayout.add_actor(volumeMenuItem25);
+					volumeLayout.add_actor(volumeMenuItem50);
+					volumeLayout.add_actor(volumeMenuItem75);
+					volumeLayout.add_actor(volumeMenuItem100);
+
+
+					// Define two new items to put the boxes in.
+					let buttonsLine = new PopupMenu.PopupBaseMenuItem({reactive: false});					
+					let volumeLine = new PopupMenu.PopupBaseMenuItem({reactive: false});
+					
+					buttonsLine.actor.add_child(buttonsLayout);
+					volumeLine.actor.add_child(volumeLayout);
+					//lineaButtons1.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+					//deviceMenuExpander.menu.addMenuItem(headingLine);
+					deviceMenuExpander.menu.addMenuItem(buttonsLine);
+					deviceMenuExpander.menu.addMenuItem(volumeLine);
+					//deviceMenuExpander.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
 					// Mute Switch
 					let muteSwitchItem = new PopupMenu.PopupSwitchMenuItem('Mute', false, {});
 					deviceMenuExpander.menu.addMenuItem(muteSwitchItem);
 
+
+					//hScale = Gtk.Scale.new_with_range (Gtk.Orientation.HORIZONTAL, 0.0, 100.0, 5.0);
+					//deviceMenuExpander.menu.addMenuItem(hScale);
 
 					if(device.status.muted){
 						muteSwitchItem.toggle();
@@ -148,6 +288,14 @@ var CastControl = new Lang.Class({
 					base._hookUpActionTriggers(playMenuItem, device.id, "play", base);
 					base._hookUpActionTriggers(pauseMenuItem, device.id, "pause", base);
 					base._hookUpActionTriggers(stopMenuItem, device.id, "stop", base);
+					base._hookUpActionTriggers(volumeMenuItem0, device.id, "volume/0", base);
+					base._hookUpActionTriggers(volumeMenuItem25, device.id, "volume/25", base);
+					base._hookUpActionTriggers(volumeMenuItem50, device.id, "volume/50", base);
+					base._hookUpActionTriggers(volumeMenuItem75, device.id, "volume/75", base);
+					base._hookUpActionTriggers(volumeMenuItem100, device.id, "volume/100", base);
+					base._hookUpActionTriggers(restartMenuItem, device.id, "seek/0", base);
+					base._hookUpActionTriggers(skipMenuItem, device.id, "seek/10", base);
+					base._hookUpActionTriggers(nextMenuItem, device.id, "seek/100000000", base);
 					base._hookUpMuteSwitchTriggers(muteSwitchItem, device.id, base);	
 				});
 			}
@@ -230,7 +378,7 @@ var CastControl = new Lang.Class({
 
     _createMenuItems: function(){
 		// Set a fixed width to the menu to ensure consistency
-		this.menu.box.width = 350;
+		this.menu.box.width = 450;
 		// Clear menu items, if items have already been created
 		this._clearMenuItems();
         // Create menu item for each Cast device
