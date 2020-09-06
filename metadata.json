@@ -1,8 +1,8 @@
 {
-  "name": "Cast Control", 
-  "description": "Control Google Cast devices on your local network.", 
-  "version": 4,
-  "uuid": "castcontrol@hello.lukearran.com", 
-  "url": "https://github.com/lukearran/GNOME-Cast-Control",
-  "shell-version": ["3.32", "3.34", "3.36"]
+    "name": "Cast Control",
+    "description": "Control your Google Cast devices easily from the GNOME Shell. This extension requires the npm package 'cast-web-api-cli' to be installed. Please follow the instructions in the GitHub page below for more information. Credit: Luke Arran, SamyGarib and Hannes Rodel.",
+    "version": 5,
+    "uuid": "castcontrol@hello.lukearran.com",
+    "url": "https://github.com/lukearran/GNOME-Cast-Control",
+    "shell-version": ["3.32", "3.34", "3.36"]
 }
